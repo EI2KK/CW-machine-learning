@@ -1,13 +1,15 @@
 import random
 import json
+import os
 
 characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789?!.,+"
 character_list = list(characters)
 speed_range = (12, 35)
 min_frequency = 300
 max_frequency = 900
-min_char = 9
-max_char = 10
+min_char = 3
+max_char = 5
+num_files_to_generate = 10
 
 # Function to generate Morse code text of a given length
 def generate_cw_text(length):
@@ -24,14 +26,26 @@ morse_code = {
 
 # Function to calculate the duration of a Morse code character
 def calculate_morse_duration(char, wpm):
-    dot_duration_ms = int(60000 / (50 * wpm))
+    dot_duration_ms = int(1200 / wpm)  # Długość kropki
+    dash_duration_ms = 3 * dot_duration_ms  # Długość kreski
+    intra_char_space_ms = dot_duration_ms  # Przerwa między elementami znaku
+
     morse_sequence = morse_code.get(char, '')
-    char_duration_ms = 0  # Initialize the variable char_duration_ms
-    for symbol in morse_sequence:
+    char_duration_ms = 0
+
+    for i, symbol in enumerate(morse_sequence):
         if symbol == '.':
             char_duration_ms += dot_duration_ms
         elif symbol == '-':
-            char_duration_ms += 3 * dot_duration_ms
+            char_duration_ms += dash_duration_ms
+
+        # Dodaj przerwę po każdym symbolu oprócz ostatniego
+        if i < len(morse_sequence) - 1:
+            char_duration_ms += intra_char_space_ms
+
+    # Dodaj przerwę po znaku (standardowo trzy długości kropki)
+    char_duration_ms += 3 * dot_duration_ms
+
     return char_duration_ms
 
 # Function to find the Morse character with the longest duration
@@ -51,12 +65,12 @@ wpm_min, wpm_max = speed_range
 wpm = wpm_min
 longest_char, longest_duration = find_longest_morse_char(wpm)
 
-print(longest_duration)
+
 file_duration_ms = round((max_char * longest_duration) / 2)
 
 # Function to generate a JSON file with CW (Morse code) data
 def generate_json_file(file_number, cw_text):
-    file_name = f"label_{file_number:05}.wav"
+    file_name = f"cw_{file_number:05}.wav"
     speed_wpm = [random.randint(speed_range[0], speed_range[1]) for _ in cw_text]
     frequency = [random.randint(min_frequency, max_frequency) for _ in cw_text]
     duration_ms = [calculate_morse_duration(char, wpm) for char, wpm in zip(cw_text, speed_wpm)]
@@ -89,10 +103,12 @@ def generate_json_file(file_number, cw_text):
         "file_duration_ms": file_duration_ms
     }
 
-    with open(file_name.replace(".wav", ".json"), "w") as json_file:
+    json_directory = 'json_folder'
+    json_file_path = os.path.join(json_directory, file_name.replace(".wav", ".json").replace("cw", "label"))
+
+    with open(json_file_path, "w") as json_file:
         json.dump(data, json_file, indent=4)
 
-num_files_to_generate = 10
 
 # Generate multiple JSON files with CW (Morse code) data
 for i in range(num_files_to_generate):
