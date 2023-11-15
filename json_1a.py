@@ -9,7 +9,7 @@ min_frequency = 700
 max_frequency = 700  
 min_char = 7
 max_char = 9
-num_files_to_generate = 100
+num_files_to_generate = 10
 
 # Function to generate Morse code text of a given length
 def generate_cw_text(length):
@@ -27,7 +27,7 @@ morse_code = {
 # Function to calculate the duration of a Morse code character
 def calculate_morse_duration(char, wpm):
     dot_duration_ms = int(1200 / wpm)  
-    dash_duration_ms = 3 * dot_duration_ms  i
+    dash_duration_ms = 3 * dot_duration_ms  
     intra_char_space_ms = dot_duration_ms  
 
     morse_sequence = morse_code.get(char, '')
@@ -80,7 +80,7 @@ def generate_json_file(file_number, cw_text, wpm, frequency):
     total_duration = sum(duration_ms)
     num_chars = len(cw_text)
 
-    start_time_ms = 0
+    start_time_ms = round(random.uniform(1000, 1600))
     start_times = []
     for char_duration in duration_ms:
         start_times.append(start_time_ms)
