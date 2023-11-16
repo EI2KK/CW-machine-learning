@@ -2,21 +2,22 @@ import numpy as np
 import wave
 import json
 import os
+import sys
 
-# Morse code for characters
+if __name__ == '__main__':
+    json_directory = 'json_folder'
+
+# Morse code for characters (with space)
 morse_code = {
     'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F': '..-.', 'G': '--.', 'H': '....', 'I': '..', 'J': '.---',
     'K': '-.-', 'L': '.-..', 'M': '--', 'N': '-.', 'O': '---', 'P': '.--.', 'Q': '--.-', 'R': '.-.', 'S': '...', 'T': '-',
     'U': '..-', 'V': '...-', 'W': '.--', 'X': '-..-', 'Y': '-.--', 'Z': '--..', '0': '-----', '1': '.----', '2': '..---',
-    '3': '...--', '4': '....-', '5': '.....', '6': '-....', '7': '--...', '8': '---..', '9': '----.', ',': '--..--',
-    '.': '.-.-.-', '+': '.-.-.', '!': '-.-.--', ' ': ' ',
+    '3': '...--', '4': '....-', '5': '.....', '6': '-....', '7': '--...', '8': '---..', '9': '----.', '/': '-..-.', '!': '-.-.--', '?': '..--..', ' ': ' '
 }
 
 sample_rate = 44100
 inaccuracy=20 
 frequency_inaccuracy=0
-# Folder containing JSON files
-json_directory = 'json_folder'
 
 import numpy as np
 
@@ -123,3 +124,4 @@ for filename in os.listdir(json_directory):
             json.dump(data, file, indent=4)
 
 print(f"Done, WAV files have been created.")
+print(json_directory)
