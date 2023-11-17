@@ -178,5 +178,5 @@ with open('wav_3.py', 'r') as file:
     code = file.read()
     # Tworzenie zmiennej, którą chcesz przekazać
     parametr = f"{json_directory_}_{formatted_training}_{formatted_batch}"
-    # Wykonanie kodu z modyfikacją zmiennych globalnych
+   # Wykonanie kodu z modyfikacją zmiennych globalnych
     exec(code, {'json_directory': parametr})
