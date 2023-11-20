@@ -2,7 +2,7 @@ import random
 import json
 import os
 
-characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789?!.,+"
+characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789?!?"
 character_list = list(characters)
 speed_range = (12, 20)
 min_frequency = 600  
@@ -12,7 +12,15 @@ max_word = 5  # Maksymalna liczba słów w jednym pliku
 min_char = 2
 max_char = 7  # Maksymalna liczba znaków w jednym słowie
 num_files_to_generate = 100
+training = 2
+batch = 4
+json_directory_ = 'json_folder'
+# Formatowanie wartości z wiodącymi zerami
+formatted_training = f"{training:03}"  # Formatuje 'training' do postaci trzycyfrowej
+formatted_batch = f"{batch:03}"  # Formatuje 'batch' do postaci trzycyfrowej
 
+json_directory = f"{json_directory_}_{formatted_training}_{formatted_batch}"
+    
 
 # Funkcja do generowania losowego słowa
 def generate_word():
@@ -76,7 +84,7 @@ def find_longest_morse_char(wpm):
 wpm_min, wpm_max = speed_range
 wpm = wpm_min  
 longest_char, longest_duration = find_longest_morse_char(wpm)
-file_duration_ms = (max_char + 1) * longest_duration
+file_duration_ms = ((max_char + 1) * max_word) * longest_duration
 
 # Function to generate a JSON file with CW (Morse code) data
 # Funkcja do generowania JSON z danymi CW (kodem Morse'a)
@@ -96,12 +104,12 @@ def generate_json_file(file_number, cw_text):
 
 
     # Oblicz maksymalny dostępny czas między słowami
-    max_available_time = file_duration_ms - total_duration - (num_words - 1) * word_spacing
+    max_available_time = file_duration_ms - total_duration - (num_words) * word_spacing
 
     # Sprawdź, czy max_available_time jest większe lub równe zeru
     if max_available_time >= 0:
         # Losowo wybierz początkowy start_time_ms
-        start_time_ms = random.randint(0, max_available_time)
+        start_time_ms = random.randint(0, 900) # max_available_time)
     else:
         # Jeśli max_available_time jest ujemne, ustaw start_time_ms na zero
         start_time_ms = 0
@@ -120,18 +128,30 @@ def generate_json_file(file_number, cw_text):
     speed_wpm = random.randint(speed_range[0], speed_range[1])
     frequency = random.randint(min_frequency, max_frequency)
 
+
+    # Obliczanie wartości 'eot'
+    eot = start_times[-1] + duration_ms[-1] + int(word_spacing * random.uniform(1.6, 2.5))
+    
+    
     data = {
+    "training": training,
+        "batch": batch,
         "file_name": file_name,
         "cw_text": cw_text,
         "start_time_ms": start_times,
         "duration_ms": duration_ms,  # Zmienione na listę długości trwania słów
         "speed_wpm": speed_wpm,  # Przeniesione na poziom pliku, jako pojedyncza wartość
         "frequency": frequency,  # Przeniesione na poziom pliku, jako pojedyncza wartość
+        "eot": eot,
         "file_duration_ms": file_duration_ms
     }
 
     # Zapisz dane do pliku JSON
-    json_directory = 'json_folder'
+    #json_directory = 'json_folder'
+    
+    if not os.path.exists(json_directory):
+        os.makedirs(json_directory)
+    
     json_file_path = os.path.join(json_directory, file_name.replace(".wav", ".json").replace("cw", "label"))
 
     with open(json_file_path, "w") as json_file:
@@ -148,4 +168,24 @@ for i in range(num_files_to_generate):
 
 with open('length.py', 'r') as file:
     code = file.read()
-    exec(code)
+    # Tworzenie zmiennej, którą chcesz przekazać
+    parametr = f"{json_directory_}_{formatted_training}_{formatted_batch}"
+   # Wykonanie kodu z modyfikacją zmiennych globalnych
+    exec(code, {'json_directory': parametr})
+    
+
+
+with open('wav_w.py', 'r') as file:
+    code = file.read()
+    # Tworzenie zmiennej, którą chcesz przekazać
+    parametr = f"{json_directory_}_{formatted_training}_{formatted_batch}"
+   # Wykonanie kodu z modyfikacją zmiennych globalnych
+    exec(code, {'json_directory': parametr})
+    
+    
+#with open('fftg.py', 'r') as file:
+#    code = file.read()
+#    # Tworzenie zmiennej, którą chcesz przekazać
+#    parametr = f"{json_directory_}_{formatted_training}_{formatted_batch}"
+#    # Wykonanie kodu z modyfikacją zmiennych globalnych
+#    exec(code, {'wav_directory': parametr})

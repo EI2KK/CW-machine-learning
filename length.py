@@ -2,7 +2,8 @@ import os
 import json
 import math
 
-json_directory = 'json_folder'  # Change to the correct path to the JSON files directory
+if __name__ == '__main__':
+    json_directory = 'json_folder_002_004'
 
 def calculate_max_file_duration(json_file_path):
     with open(json_file_path, 'r') as file:
@@ -44,4 +45,4 @@ for filename in os.listdir(json_directory):
         update_json_file_duration(json_path, max_duration)
         
         
-print(f"File {json_path} updated. New value for file_duration_ms: {max_duration}")
+print(f"New value for file_duration_ms: {max_duration}")
