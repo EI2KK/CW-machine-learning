@@ -5,13 +5,13 @@ import os
 characters = "ABC DEFGH IJK LMNO PQRST UVWXYZ 01234 56789 ?!/ "
 character_list = list(characters)
 speed_range = (25, 25)
-min_frequency = 700  
-max_frequency = 700  
+min_frequency = 600 
+max_frequency = 800  
 min_char = 7
 max_char = 9
 num_files_to_generate = 10
 training = 1
-batch = 3
+batch = 4
 json_directory_ = 'json_folder'
 
 
@@ -37,7 +37,7 @@ data_to_save = {
     'min_char': min_char,
     'max_char': max_char,
     'num_of_files': num_files_to_generate,
-    'mfcc': False
+    'spectrogrm': False
 }
 
 # Sprawdzanie, czy plik JSON już istnieje
@@ -127,6 +127,7 @@ wpm_min, wpm_max = speed_range
 wpm = wpm_min  
 longest_char, longest_duration = find_longest_morse_char(wpm)
 file_duration_ms = (max_char + 1) * longest_duration
+print(file_duration_ms)
 
 # Function to generate a JSON file with CW (Morse code) data
 def generate_json_file(file_number, cw_text, wpm, frequency):
@@ -154,7 +155,7 @@ def generate_json_file(file_number, cw_text, wpm, frequency):
         "frequency": frequencies,
         "start_time_ms": start_times,
         "duration_ms": duration_ms,
-        "file_duration_ms": start_time_ms
+        "file_duration_ms": file_duration_ms
     }
 
     json_file_path = os.path.join(json_directory, file_name.replace(".wav", ".json").replace("cw", "label"))
@@ -180,3 +181,11 @@ with open('wav_3.py', 'r') as file:
     parametr = f"{json_directory_}_{formatted_training}_{formatted_batch}"
    # Wykonanie kodu z modyfikacją zmiennych globalnych
     exec(code, {'json_directory': parametr})
+    
+    
+with open('fftg.py', 'r') as file:
+    code = file.read()
+    # Tworzenie zmiennej, którą chcesz przekazać
+    parametr = f"{json_directory_}_{formatted_training}_{formatted_batch}"
+   # Wykonanie kodu z modyfikacją zmiennych globalnych
+    exec(code, {'wav_directory': parametr})
