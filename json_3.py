@@ -122,7 +122,7 @@ def generate_json_file(file_number, cw_text):
         start_times.append(start_time_ms)
         word_duration = sum([calculate_morse_duration(char, wpm) for char in word])
         duration_ms.append(word_duration)  # Dodaj długość trwania słowa
-        start_time_ms += word_duration + word_spacing  # Dodaj przerwę między słowami
+        start_time_ms += word_duration + word_spacing + round(random.uniform(0, 2500))  # Dodaj przerwę między słowami
 
     # Przemieszczamy speed_wpm i frequency przed file_duration
     speed_wpm = random.randint(speed_range[0], speed_range[1])
