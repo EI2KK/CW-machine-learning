@@ -4,17 +4,17 @@ import os
 
 characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789?!?"
 character_list = list(characters)
-speed_range = (12, 20)
+speed_range = (21, 21)
 min_frequency = 600  
 max_frequency = 800  
 min_word = 1
 max_word = 5  # Maksymalna liczba słów w jednym pliku
 min_char = 2
 max_char = 7  # Maksymalna liczba znaków w jednym słowie
-num_files_to_generate = 100
+num_files_to_generate = 10
 start_between = (300, 2200)
 training = 2
-batch = 4
+batch = 5
 json_directory_ = 'json_folder'
 noise = False
 
@@ -81,6 +81,16 @@ else:
 with open(json_file_name, 'w') as file:
     json.dump(data, file, indent=4)
 
+# callsigns
+def read_random_callsign_from_json(file_path):
+    try:
+        with open(file_path, 'r') as file:
+            data = json.load(file)
+            random_entry = random.choice(data)
+            return random_entry['Callsign']
+    except Exception as e:
+        print(f"Error reading file: {e}")
+        return None
 
     
 
@@ -92,7 +102,15 @@ def generate_word():
 # Funkcja do generowania Morse code text
 def generate_cw_text():
     num_words = random.randint(min_word, max_word)
-    return [generate_word() for _ in range(num_words)]
+    #words = [generate_word() for _ in range(num_words)]
+    words = [read_random_callsign_from_json('cqww2022.json') for _ in range(num_words)]
+    # Rozbijanie słów na listę znaków
+    characters = []
+    for word in words:
+        characters.extend(list(word))
+        # Dodaj znak przerwy między słowami
+        characters.append(" ")
+    return characters[:-1]  # Usuwamy ostatnią przerwę
     
     
 # Morse code mapping dictionary
@@ -110,6 +128,7 @@ def calculate_morse_duration(char, wpm):
     dash_duration_ms = 3 * dot_duration_ms  # Długość kreski
     intra_char_space_ms = dot_duration_ms  # Przerwa między elementami znaku
 
+
     morse_sequence = morse_code.get(char, '')
     char_duration_ms = 0
 
@@ -122,11 +141,9 @@ def calculate_morse_duration(char, wpm):
         # Dodaj przerwę po każdym symbolu oprócz ostatniego
         if i < len(morse_sequence) - 1:
             char_duration_ms += intra_char_space_ms
-
-    # Dodaj przerwę po znaku (standardowo trzy długości kropki)
-    char_duration_ms += 3 * dot_duration_ms
-
+        
     return char_duration_ms
+
 
 
 
@@ -151,40 +168,28 @@ file_duration_ms = ((max_char + 1) * max_word) * longest_duration
 # Function to generate a JSON file with CW (Morse code) data
 # Funkcja do generowania JSON z danymi CW (kodem Morse'a)
 def generate_json_file(file_number, cw_text):
-
     file_name = f"cw_{file_number:05}.wav"
-
-    # Oblicz przerwę między słowami na podstawie wybranej prędkości
     wpm = random.randint(speed_range[0], speed_range[1])
-    dash_duration_ms = calculate_morse_duration('-', wpm)
+    dot_duration_ms = int(1200 / wpm)  # Długość kropki
+
+    # Oblicz przerwę między słowami (word spacing)
+    dash_duration_ms = 3 * dot_duration_ms  # Długość kreski
     word_spacing = dash_duration_ms * 3  # Przerwa między słowami (3 kreski)
 
-    num_words = len(cw_text)  # Poprawione: użyj liczby słów w tekście
-
-    # Oblicz total_duration jako suma długości trwania słów
-    total_duration = sum([sum([calculate_morse_duration(char, wpm) for char in word]) for word in cw_text])
-
-
-    # Oblicz maksymalny dostępny czas między słowami
-    max_available_time = file_duration_ms - total_duration - (num_words) * word_spacing
-
-    # Sprawdź, czy max_available_time jest większe lub równe zeru
-    if max_available_time >= 0:
-        # Losowo wybierz początkowy start_time_ms
-        start_time_ms = random.randint(*start_between) # max_available_time)
-    else:
-        # Jeśli max_available_time jest ujemne, ustaw start_time_ms na zero
-        start_time_ms = 0
-
-    # Utwórz listę start_time_ms dla każdego słowa w cw_text
+    start_time_ms = random.randint(*start_between)
     start_times = []
-    duration_ms = []  # Lista przechowująca długość trwania każdego słowa
+    duration_ms = []
 
-    for word in cw_text:
+    for char in cw_text:
+        char_duration = calculate_morse_duration(char, wpm)
         start_times.append(start_time_ms)
-        word_duration = sum([calculate_morse_duration(char, wpm) for char in word])
-        duration_ms.append(word_duration)  # Dodaj długość trwania słowa
-        start_time_ms += word_duration + word_spacing + round(random.uniform(0, 2500))  # Dodaj przerwę między słowami
+        duration_ms.append(char_duration)
+        if char != " ":
+            # Dodajemy przerwę między znakami równą trzem kropkom
+            start_time_ms += char_duration + (3 * dot_duration_ms)
+        else:
+            # Dodajemy przerwę między słowami
+            start_time_ms += word_spacing + round(random.uniform(0, 2500))
 
     # Przemieszczamy speed_wpm i frequency przed file_duration
     speed_wpm = random.randint(speed_range[0], speed_range[1])
@@ -241,7 +246,7 @@ with open('wav_w.py', 'r') as file:
     code = file.read()
     # Tworzenie zmiennej, którą chcesz przekazać
     parametr = f"{json_directory_}_{formatted_training}_{formatted_batch}"
-   # Wykonanie kodu z modyfikacją zmiennych globalnych
+    # Wykonanie kodu z modyfikacją zmiennych globalnych
     exec(code, {'json_directory': parametr})
 
 if noise:
