@@ -193,10 +193,14 @@ file_duration_ms = ((max_char + 1) * max_word) * longest_duration
 
 # Function to generate a JSON file with CW (Morse code) data
 # Funkcja do generowania JSON z danymi CW (kodem Morse'a)
-def generate_json_file(file_number, cw_text):
+def generate_json_file(file_number, cw_text, wpm, frequency):
     file_name = f"cw_{file_number:05}.wav"
-    wpm = random.randint(speed_range[0], speed_range[1])
+    
     dot_duration_ms = int(1200 / wpm)  # Długość kropki
+    
+    speed_wpm = [wpm for _ in cw_text]  
+    frequencies = [frequency for _ in cw_text]
+    
 
     # Oblicz przerwę między słowami (word spacing)
     dash_duration_ms = 3 * dot_duration_ms  # Długość kreski
@@ -218,8 +222,8 @@ def generate_json_file(file_number, cw_text):
             start_time_ms += word_spacing + round(random.uniform(0, 2500))
 
     # Przemieszczamy speed_wpm i frequency przed file_duration
-    speed_wpm = random.randint(speed_range[0], speed_range[1])
-    frequency = random.randint(min_frequency, max_frequency)
+    #speed_wpm = wpm #random.randint(speed_range[0], speed_range[1])
+    #frequency = random.randint(min_frequency, max_frequency)
 
 
     # Obliczanie wartości 'eot'
@@ -233,8 +237,8 @@ def generate_json_file(file_number, cw_text):
         "cw_text": cw_text,
         "start_time_ms": start_times,
         "duration_ms": duration_ms,  # Zmienione na listę długości trwania słów
-        "speed_wpm": speed_wpm,  # Przeniesione na poziom pliku, jako pojedyncza wartość
-        "frequency": frequency,  # Przeniesione na poziom pliku, jako pojedyncza wartość
+        "speed_wpm": speed_wpm,  
+        "frequency": frequencies,
         "eot": eot,
         "file_duration_ms": file_duration_ms
     }
@@ -251,12 +255,12 @@ def generate_json_file(file_number, cw_text):
         json.dump(data, json_file, indent=4)
 
 
-
-
+wpm = random.randint(speed_range[0], speed_range[1])
+frequency = random.randint(min_frequency, max_frequency)
 # Generate multiple JSON files with CW (Morse code) data
 for i in range(num_files_to_generate):
     cw_text = generate_cw_text()
-    generate_json_file(i + 1, cw_text)
+    generate_json_file(i + 1, cw_text, wpm, frequency)
 
 
 with open('length.py', 'r') as file:
@@ -268,7 +272,7 @@ with open('length.py', 'r') as file:
     
 
 
-with open('wav_w.py', 'r') as file:
+with open('wav_3.py', 'r') as file:
     code = file.read()
     # Tworzenie zmiennej, którą chcesz przekazać
     parametr = f"{json_directory_}_{formatted_training}_{formatted_batch}"
