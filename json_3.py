@@ -12,6 +12,7 @@ max_word = 5  # Maksymalna liczba słów w jednym pliku
 min_char = 2
 max_char = 7  # Maksymalna liczba znaków w jednym słowie
 num_files_to_generate = 100
+start_between = (300, 2200)
 training = 2
 batch = 4
 json_directory_ = 'json_folder'
@@ -109,7 +110,7 @@ def generate_json_file(file_number, cw_text):
     # Sprawdź, czy max_available_time jest większe lub równe zeru
     if max_available_time >= 0:
         # Losowo wybierz początkowy start_time_ms
-        start_time_ms = random.randint(0, 900) # max_available_time)
+        start_time_ms = random.randint(*start_between) # max_available_time)
     else:
         # Jeśli max_available_time jest ujemne, ustaw start_time_ms na zero
         start_time_ms = 0
