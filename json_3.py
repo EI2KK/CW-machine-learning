@@ -7,16 +7,17 @@ character_list = list(characters)
 speed_range = (21, 21)
 min_frequency = 600  
 max_frequency = 800  
-min_word = 1
+min_word = 2
 max_word = 5  # Maksymalna liczba słów w jednym pliku
 min_char = 2
 max_char = 7  # Maksymalna liczba znaków w jednym słowie
 num_files_to_generate = 10
 start_between = (300, 2200)
 training = 2
-batch = 5
+batch = 6
 json_directory_ = 'json_folder'
 noise = False
+callsigns = False
 
 
 # Formatowanie wartości z wiodącymi zerami
@@ -38,7 +39,26 @@ formatted_batch = f"{batch:03}"  # Formatuje 'batch' do postaci trzycyfrowej
 json_directory = f"{json_directory_}_{formatted_training}_{formatted_batch}"
 
 # Struktura danych do zapisania
-data_to_save = {
+
+if callsigns:
+    data_to_save = {
+    'completed': None,
+    'formatted_training': formatted_training,
+    'formatted_batch': formatted_batch,
+    'json_directory': json_directory,
+    'speed_range': speed_range,
+    'min_frequency': min_frequency,
+    'max_frequency': max_frequency,
+    'min_word': min_word,
+    'max_word': max_word,
+    'type': 'callsign',
+    'num_of_files': num_files_to_generate,
+    'noise': noise,
+    'tx': False
+    }
+
+else:
+    data_to_save = {
     'completed': None,
     'formatted_training': formatted_training,
     'formatted_batch': formatted_batch,
@@ -53,7 +73,8 @@ data_to_save = {
     'num_of_files': num_files_to_generate,
     'noise': noise,
     'tx': False
-}
+    }
+
 
 # Sprawdzanie, czy plik JSON już istnieje
 if os.path.exists(json_file_name):
@@ -102,8 +123,13 @@ def generate_word():
 # Funkcja do generowania Morse code text
 def generate_cw_text():
     num_words = random.randint(min_word, max_word)
-    #words = [generate_word() for _ in range(num_words)]
-    words = [read_random_callsign_from_json('cqww2022.json') for _ in range(num_words)]
+    
+    if callsigns:
+        words = [read_random_callsign_from_json('cqww2022.json') for _ in range(num_words)]
+    else: 
+        words = [generate_word() for _ in range(num_words)]
+        
+        
     # Rozbijanie słów na listę znaków
     characters = []
     for word in words:
