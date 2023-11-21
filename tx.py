@@ -2,7 +2,7 @@ import os
 import json
 
 # Zdefiniuj katalog i wartość przerwy
-directory = 'json_folder_002_004'  # Podmień na swoją ścieżkę do katalogu
+directory = 'json_folder_001_004'  # Podmień na swoją ścieżkę do katalogu
 pause_threshold = 2000  # Przerwa w milisekundach
 
 # Funkcja do obliczania przerw między słowami
@@ -18,7 +18,6 @@ def calculate_pauses(start_times, durations, pause_threshold):
             "Tx_allowed": pause_threshold,
             "Tx_not_allowed": start_times[0]
         }
-        print(filename)
         pauses.append(pause_info)
 
     # Sprawdzenie przerw między słowami
