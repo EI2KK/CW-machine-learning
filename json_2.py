@@ -11,6 +11,8 @@ min_char = 3
 max_char = 5
 num_files_to_generate = 10
 
+json_directory = 'json_folder'
+
 # Function to generate Morse code text of a given length
 def generate_cw_text(length):
     return [random.choice(character_list) for _ in range(length)]
@@ -103,7 +105,7 @@ def generate_json_file(file_number, cw_text):
         "file_duration_ms": file_duration_ms
     }
 
-    json_directory = 'json_folder'
+    
     json_file_path = os.path.join(json_directory, file_name.replace(".wav", ".json").replace("cw", "label"))
 
     with open(json_file_path, "w") as json_file:
@@ -114,3 +116,33 @@ def generate_json_file(file_number, cw_text):
 for i in range(num_files_to_generate):
     cw_text = generate_cw_text(random.randint(min_char, max_char))
     generate_json_file(i + 1, cw_text)
+
+
+with open('length.py', 'r') as file:
+    code = file.read()
+#    exec(code)
+    
+    
+with open('length.py', 'r') as file:
+    code = file.read()
+    # Tworzenie zmiennej, którą chcesz przekazać
+    parametr =  json_directory  # f"{json_directory_}_{formatted_training}_{formatted_batch}"
+   # Wykonanie kodu z modyfikacją zmiennych globalnych
+    exec(code, {'json_directory': parametr})
+    
+
+
+with open('wav_3.py', 'r') as file:
+    code = file.read()
+    # Tworzenie zmiennej, którą chcesz przekazać
+    parametr = json_directory # f"{json_directory_}_{formatted_training}_{formatted_batch}"
+    # Wykonanie kodu z modyfikacją zmiennych globalnych
+    exec(code, {'json_directory': parametr})
+    
+    
+with open('fftg.py', 'r') as file:
+    code = file.read()
+    # Tworzenie zmiennej, którą chcesz przekazać
+    parametr = json_directory  # f"{json_directory_}_{formatted_training}_{formatted_batch}"
+    # Wykonanie kodu z modyfikacją zmiennych globalnych
+    exec(code, {'wav_directory': parametr})    
