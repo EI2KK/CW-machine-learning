@@ -13,7 +13,7 @@ num_files_to_generate = 10
 training = 1
 batch = 4
 json_directory_ = 'json_folder'
-
+noise = True
 
 ## zapis danych o wygenerowanych plikach
 
@@ -28,6 +28,7 @@ json_directory = f"{json_directory_}_{formatted_training}_{formatted_batch}"
 
 # Struktura danych do zapisania
 data_to_save = {
+    'completed': None,
     'formatted_training': formatted_training,
     'formatted_batch': formatted_batch,
     'json_directory': json_directory,
@@ -37,7 +38,8 @@ data_to_save = {
     'min_char': min_char,
     'max_char': max_char,
     'num_of_files': num_files_to_generate,
-    'spectrogrm': False
+    'noise': noise,
+    'tx': False
 }
 
 # Sprawdzanie, czy plik JSON już istnieje
@@ -179,8 +181,18 @@ with open('wav_3.py', 'r') as file:
     code = file.read()
     # Tworzenie zmiennej, którą chcesz przekazać
     parametr = f"{json_directory_}_{formatted_training}_{formatted_batch}"
-   # Wykonanie kodu z modyfikacją zmiennych globalnych
+    # Wykonanie kodu z modyfikacją zmiennych globalnych
     exec(code, {'json_directory': parametr})
+
+
+if noise:
+    with open('noise_bulk.py', 'r') as file:
+        code = file.read()
+        # Tworzenie zmiennej, którą chcesz przekazać
+        parametr = f"{json_directory_}_{formatted_training}_{formatted_batch}"
+        # Wykonanie kodu z modyfikacją zmiennych globalnych
+        exec(code, {'input_folder': parametr})
+
     
     
 with open('fftg.py', 'r') as file:

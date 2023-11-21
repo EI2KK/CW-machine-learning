@@ -16,11 +16,72 @@ start_between = (300, 2200)
 training = 2
 batch = 4
 json_directory_ = 'json_folder'
+noise = False
+
+
 # Formatowanie wartości z wiodącymi zerami
 formatted_training = f"{training:03}"  # Formatuje 'training' do postaci trzycyfrowej
 formatted_batch = f"{batch:03}"  # Formatuje 'batch' do postaci trzycyfrowej
 
 json_directory = f"{json_directory_}_{formatted_training}_{formatted_batch}"
+
+
+## zapis danych o wygenerowanych plikach
+
+json_file_name = 'training.json'
+
+# Formatowanie wartości z wiodącymi zerami
+formatted_training = f"{training:03}"  # Formatuje 'training' do postaci trzycyfrowej
+formatted_batch = f"{batch:03}"  # Formatuje 'batch' do postaci trzycyfrowej
+
+# Tworzenie nowej nazwy katalogu
+json_directory = f"{json_directory_}_{formatted_training}_{formatted_batch}"
+
+# Struktura danych do zapisania
+data_to_save = {
+    'completed': None,
+    'formatted_training': formatted_training,
+    'formatted_batch': formatted_batch,
+    'json_directory': json_directory,
+    'speed_range': speed_range,
+    'min_frequency': min_frequency,
+    'max_frequency': max_frequency,
+    'min_char': min_char,
+    'max_char': max_char,
+    'min_word': min_word,
+    'max_word': max_word,
+    'num_of_files': num_files_to_generate,
+    'noise': noise,
+    'tx': False
+}
+
+# Sprawdzanie, czy plik JSON już istnieje
+if os.path.exists(json_file_name):
+    # Odczytywanie istniejących danych
+    with open(json_file_name, 'r') as file:
+        data = json.load(file)
+    
+    # Sprawdzanie, czy istnieje wpis z tymi samymi wartościami formatted_training i formatted_batch
+    entry_found = False
+    for entry in data:
+        if entry['formatted_training'] == formatted_training and entry['formatted_batch'] == formatted_batch:
+            # Aktualizacja istniejącego wpisu
+            entry.update(data_to_save)
+            entry_found = True
+            break
+
+    if not entry_found:
+        # Dodanie nowego wpisu, jeśli nie znaleziono pasującego
+        data.append(data_to_save)
+else:
+    # Utworzenie nowego pliku z pierwszym wpisem
+    data = [data_to_save]
+
+# Zapisywanie danych do pliku JSON
+with open(json_file_name, 'w') as file:
+    json.dump(data, file, indent=4)
+
+
     
 
 # Funkcja do generowania losowego słowa
@@ -135,7 +196,7 @@ def generate_json_file(file_number, cw_text):
     
     
     data = {
-    "training": training,
+        "training": training,
         "batch": batch,
         "file_name": file_name,
         "cw_text": cw_text,
@@ -182,11 +243,20 @@ with open('wav_w.py', 'r') as file:
     parametr = f"{json_directory_}_{formatted_training}_{formatted_batch}"
    # Wykonanie kodu z modyfikacją zmiennych globalnych
     exec(code, {'json_directory': parametr})
+
+if noise:
+    with open('noise_bulk.py', 'r') as file:
+        code = file.read()
+        # Tworzenie zmiennej, którą chcesz przekazać
+        parametr = f"{json_directory_}_{formatted_training}_{formatted_batch}"
+        # Wykonanie kodu z modyfikacją zmiennych globalnych
+        exec(code, {'json_directory': parametr})
+
     
     
-#with open('fftg.py', 'r') as file:
-#    code = file.read()
-#    # Tworzenie zmiennej, którą chcesz przekazać
-#    parametr = f"{json_directory_}_{formatted_training}_{formatted_batch}"
-#    # Wykonanie kodu z modyfikacją zmiennych globalnych
-#    exec(code, {'wav_directory': parametr})
+with open('fftg.py', 'r') as file:
+    code = file.read()
+    # Tworzenie zmiennej, którą chcesz przekazać
+    parametr = f"{json_directory_}_{formatted_training}_{formatted_batch}"
+    # Wykonanie kodu z modyfikacją zmiennych globalnych
+    exec(code, {'wav_directory': parametr})
