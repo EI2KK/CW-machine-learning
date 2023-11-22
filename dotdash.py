@@ -15,7 +15,7 @@ stop_b4_end = 1000
 nr_of_freq = 4
 min_volume = 0.3
 total_length = 10000
-
+noise = True
 num_files_to_generate = 10
 training = 1
 batch = 4
@@ -29,7 +29,7 @@ formatted_batch = f"{batch:03}"  # Formatuje 'batch' do postaci trzycyfrowej
 directory_name = f"{json_directory_}_{training:03}_{batch:03}"
 os.makedirs(directory_name, exist_ok=True)
 
-noise = False
+
 
 # Morse code mapping dictionary
 morse_code = {
@@ -105,6 +105,7 @@ for file_number in range(1, num_files_to_generate + 1):
     json_data = {
         "cw_file": f"cw_{file_number:05}.wav",
         "session_duration_ms": total_length, 
+        "noise": noise,
         "speed_range": speed_range,
         "freq_range": freq_range,
         "start_between_ms": start_between_ms,
@@ -147,6 +148,18 @@ for file_number in range(1, num_files_to_generate + 1):
     file_path = os.path.join(directory_name, file_name)
     with open(file_path, 'w', encoding='utf-8') as file:
         json.dump(json_data, file, ensure_ascii=False, indent=2)
+
+
+
+
+if noise:
+    with open('noise_bulk.py', 'r') as file:
+        code = file.read()
+        # Tworzenie zmiennej, którą chcesz przekazać
+        parametr = f"{json_directory_}_{formatted_training}_{formatted_batch}"
+        # Wykonanie kodu z modyfikacją zmiennych globalnych
+        exec(code, {'input_folder': parametr})
+
 
 
 with open('wav_dd.py', 'r') as file:
