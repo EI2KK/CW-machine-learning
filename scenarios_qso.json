@@ -1,0 +1,160 @@
+{
+  "roles": {
+    "CQ Station": {
+      "stages": {
+        
+		"1": {
+          "type": "input",
+          "actions": [
+            {
+              "action": "init Tx",
+              "options": {
+              "$Tx": "10"
+              }
+            }
+          ]
+        },
+		"10": {
+          "type": "output",
+          "actions": [
+            {
+              "action": "call CQ",
+              "options": {
+                "CQ CQ DE {{model_callsign}} TEST": "20",
+				"{{model_callsign}} TEST": "20",
+                "CQ TEST {{model_callsign}}": "20"
+              }
+            }
+          ]
+        },
+		"20": {
+          "type": "input",
+          "actions": [
+            {
+              "action": "receive call",
+              "options": {
+                "{{full_callsign}}": "50",
+                "{{partial_callsign}}": "21",
+				"{{full_callsign_mistake}}": "22"
+              }
+            }
+          ]
+        },
+        "21": {
+          "type": "output",
+          "actions": [
+            {
+              "action": "again",
+              "options": {
+                "{{partial_callsign}}": "20",
+                "{{partial_callsign}} AGN": "20",
+                "{{partial_callsign}} ?": "20"
+              }
+            }
+          ]
+        },
+		"22": {
+          "type": "output",
+          "actions": [
+            {
+              "action": "correct call mistaken for partial",
+              "options": {
+                "{{full_callsign}} AGN": "23",
+                "{{full_callsign}} ?": "23",
+				"{{full_callsign}}?": "23"
+              }
+            }
+          ]
+        },
+		"23": {
+          "type": "input",
+          "actions": [
+            {
+              "action": "receive call",
+              "options": {
+                "R {{full_callsign}}": "50",
+                "R {{full_callsign}}": "22",
+				"RR {{full_callsign}}": "50",
+                "RR {{full_callsign}}": "22",
+				"RRR {{full_callsign}}": "50"                
+              }
+            }
+          ]
+        },    
+		"40": {
+          "type": "output",
+          "actions": [
+            {
+              "action": "drop qso",
+              "options": {
+                "SRI NO COPY": "1"
+              }
+            }
+          ]
+        },		
+		"50": {
+          "type": "output",
+          "actions": [
+            {
+              "action": "check callsign",
+              "options": {
+                "$CALL:{{full_callsign}}": "51"
+              }
+            }
+          ]
+        },
+		"51": {
+          "type": "input",
+          "actions": [
+            {
+              "action": "receive call",
+              "options": {
+                "$OK": "60",
+                "$B4": "55"
+              }
+            }
+          ]
+        },
+		"55": {
+          "type": "output",
+          "actions": [
+            {
+              "action": "qso b4",
+              "options": {
+                "{{full_callsign}} QSO B4": "1"
+              }
+            }
+          ]
+        },
+        "60": {
+          "type": "output",
+          "actions": [
+            {
+              "action": "send report",
+              "options": {
+                "{{full_callsign}} $NR": "100"
+              }
+            }
+          ]
+        },
+		"100": {
+          "type": "input",
+          "actions": [
+            {
+              "action": "recieve report",
+              "options": {
+                "{{report}} TU": "999",
+				"R {{report}}": "999",
+				"R {{report}} TU": "999",
+				"{{report}}": "999"
+              }
+            }
+          ]
+        }
+		
+        
+      }
+    }
+    
+  }
+}
