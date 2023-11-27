@@ -20,13 +20,13 @@ def process_json_files_v7(directory, window, overlap):
                       "training", "batch"]
 
     element_to_vector = {
-        "dot": "0000001",
-        "dash": "0000010",
-        "element_end": "0000100",
-        "char_end": "0001000",
-        "word_end": "0010000",
-        "pause": "0100000",
-        "qrm": "1000000"
+        "dot":          "000001",
+        "dash":         "000010",
+        "element_end":  "000100",
+        "char_end":     "001000",
+        "word_end":     "010000",
+        "qrm":          "100000",
+        
     }
 
     # Normalization functions
@@ -34,11 +34,16 @@ def process_json_files_v7(directory, window, overlap):
         return (freq - 300) / (1000 - 300)
 
     def normalize_speed_wpm(speed):
-        return (speed - 12) / (50 - 12)
+        
+        speed = (speed - 12) / (50 - 12)
+        if speed < 0:
+            speed = 0
+    
+        return speed
 
     # Function to format time values
     def format_time(value):
-        return float(f"{value:.1f}")
+        return float(f"{value:.4f}")
 
     for filename in os.listdir(directory):
         if filename.startswith("cw_") and filename.endswith(".json"):
@@ -88,7 +93,7 @@ def process_json_files_v7(directory, window, overlap):
                     sequence["elements"].append({
                         "start_ms": sequence["start_ms"],
                         "end_ms": sequence["end_ms"],
-                        "element": "0000000",
+                        "element": "000000",
                         "frequency": 0.0,
                         "speed_wpm": 0.0
                     })

@@ -3,7 +3,10 @@ import json
 import os
 
 # Zdefiniowanie zmiennych
-characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789?!"
+
+characters = "ETANIMSOUDKRGWHBCFJLPQVXYZ0123456789?!/"
+n = 10  # pula znakow do wyboru od poczatku listy
+
 character_list = list(characters)
 char_range = (2, 7)
 speed_range = (18, 25)
@@ -13,12 +16,16 @@ sidetone = 700
 start_between_ms = (500, 1500)
 stop_b4_end = 1000
 nr_of_freq = 2
+nr_of_qrm_freq = 1
+qrm_length = (800, 3000)
+qrm_start_between = (300, 2000)
 min_volume = 0.3
 total_length = 5000
 noise = False
 num_files_to_generate = 10
 training = 1
-batch = 4
+batch = 5
+
 json_directory_ = 'json_folder'
 # Formatowanie wartości z wiodącymi zerami
 formatted_training = f"{training:03}"  # Formatuje 'training' do postaci trzycyfrowej
@@ -111,13 +118,9 @@ def generate_morse_data(char, start_time, speed, max_end_time):
             start_time = element_gap
 
     # Dodanie 'char_end' na koniec, nawet jeśli wykracza to poza max_end_time
-    data.append({"element": "char_end", "start_ms": start_time, "end_ms": start_time + unit_duration, "duration_ms": unit_duration})
+    data.append({"element": "element_end", "start_ms": start_time, "end_ms": start_time + unit_duration, "duration_ms": unit_duration})
 
     return data, start_time
-
-
-
-
 
 # Funkcja do generowania danych Morse'a dla słowa
 def generate_word_data(word, start_time, speed, max_end_time):
@@ -128,15 +131,17 @@ def generate_word_data(word, start_time, speed, max_end_time):
             break
         data.extend(char_data)
         char_end_time = start_time + 3 * 1200 / speed
+        word_start_time = start_time
         if char_end_time <= max_end_time:
             data.append({"element": "char_end", "start_ms": start_time, "end_ms": char_end_time, "duration_ms": char_end_time - start_time})
+            
             start_time = char_end_time
         else:
             break
 
-    word_end_time = start_time + 7 * 1200 / speed
+    word_end_time = word_start_time + 7 * 1200 / speed
     if word_end_time <= max_end_time:
-        data.append({"element": "word_end", "start_ms": start_time, "end_ms": word_end_time, "duration_ms": word_end_time - start_time})
+        data.append({"element": "word_end", "start_ms": word_start_time, "end_ms": word_end_time, "duration_ms": word_end_time - word_start_time})
         start_time = word_end_time
     return data, start_time
 
@@ -155,6 +160,26 @@ def generate_frequencies(nr_of_freq, freq_range, min_sep):
             possible_frequencies.discard(freq)
 
     return sorted(frequencies)
+    
+def generate_qrm_frequencies(nr_of_qrm_freq, freq_range, min_sep, frequencies):
+    # Generowanie unikalnego zestawu możliwych częstotliwości
+    possible_qrm_frequencies = set(range(freq_range[0], freq_range[1] + 1))
+
+    # Usuwanie częstotliwości zbyt bliskich do już wybranych w frequencies
+    for freq in frequencies:
+        for near_freq in range(freq - min_sep, freq + min_sep + 1):
+            possible_qrm_frequencies.discard(near_freq)
+
+    qrm_frequencies = []
+
+    while len(qrm_frequencies) < nr_of_qrm_freq and possible_qrm_frequencies:
+        qrm_frequency = random.choice(list(possible_qrm_frequencies))
+        qrm_frequencies.append(qrm_frequency)
+
+        # W tym przypadku, nie usuwamy częstotliwości bliskich do qrm_frequency
+        # ponieważ zachowujemy odstęp tylko od frequencies
+
+    return sorted(qrm_frequencies)    
 
 for file_number in range(1, num_files_to_generate + 1):
 
@@ -174,6 +199,9 @@ for file_number in range(1, num_files_to_generate + 1):
         }
     frequencies = []
     frequencies = generate_frequencies(nr_of_freq, freq_range, min_sep)
+    qrm_frequencies = generate_qrm_frequencies(nr_of_qrm_freq, freq_range, min_sep, frequencies)
+    
+        
     for _ in range(nr_of_freq):
     
         frequency = frequencies[_]
@@ -184,10 +212,12 @@ for file_number in range(1, num_files_to_generate + 1):
         volume = round(random.uniform(min_volume, 1), 3)
         freq_data = {"frequency": frequency, "speed_wpm": speed, "output": 0, "volume": volume, "data": []}  # Dodano 'volume'
 
+    
+        limited_character_list = character_list[:n]
 
         while start_time < total_length - stop_b4_end:
             word_length = random.randint(*char_range)
-            word = ''.join(random.choices(character_list, k=word_length))
+            word = ''.join(random.choices(limited_character_list, k=word_length))
             word_data, new_start_time = generate_word_data(word, start_time, speed, total_length - stop_b4_end)
             if new_start_time == start_time:
                 break  # Wyjdź z pętli, jeśli czas startu się nie zmienił
@@ -196,10 +226,25 @@ for file_number in range(1, num_files_to_generate + 1):
 
         json_data["elements"].append(freq_data)
 
-    closest_freq = min(frequencies, key=lambda x: (abs(x - sidetone), -x))
-    for element in json_data["elements"]:
-        if element["frequency"] == closest_freq:
-            element["output"] = 1
+    # QRM    
+    for _ in range(nr_of_qrm_freq):
+        frequency = qrm_frequencies[_]
+        volume = round(random.uniform(min_volume, 1), 3)
+        qrm_data = {"frequency": frequency, "speed_wpm": 0, "output": 0, "volume": volume, "data": []}  # Dodano 'volume'
+        
+        start_time = random.randint(*qrm_start_between)
+        qrm_duration = random.randint(*qrm_length)
+        
+        if (start_time + qrm_duration) > total_length:
+            qrm_duration = total_length - start_time - 1
+        
+        data = []
+        data.append({"element": "qrm", "start_ms": start_time, "end_ms": start_time + qrm_duration, "duration_ms": qrm_duration})
+        qrm_data["data"].extend(data)
+        
+        json_data["elements"].append(qrm_data)    
+    
+    print(qrm_data)
 
     file_name = f"cw_{file_number:05}.json"
     file_path = os.path.join(directory_name, file_name)
@@ -207,6 +252,13 @@ for file_number in range(1, num_files_to_generate + 1):
         json.dump(json_data, file, ensure_ascii=False, indent=2)
 
 
+print("labels")
+with open('labels.py', 'r') as file:
+    code = file.read()
+    # Tworzenie zmiennej, którą chcesz przekazać
+    parametr = f"{json_directory_}_{formatted_training}_{formatted_batch}"
+    # Wykonanie kodu z modyfikacją zmiennych globalnych
+    exec(code, {'directory': parametr})
 
 
 if noise:

@@ -32,7 +32,7 @@ def process_json_file(json_file):
             frequency = element['frequency']
             volume = element['volume']
             for item in element['data']:
-                if item['element'] in ['dot', 'dash']:
+                if item['element'] in ['dot', 'dash', 'qrm']:
                     
                     start = item['start_ms'] / 1000
                     duration = item['duration_ms'] / 1000
