@@ -17,7 +17,7 @@ def process_json_files_v7(directory, window, overlap):
     """
     fields_to_copy = ["cw_file", "npy_file", "session_duration_ms", "noise", "speed_range",
                       "freq_range", "start_between_ms", "stop_b4_end", "nr_of_freq",
-                      "training", "batch"]
+                      "training", "batch", "S/N (dB)"]
 
     element_to_vector = {
         "dot":          "000001",

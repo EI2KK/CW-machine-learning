@@ -5,10 +5,13 @@ import os
 # Zdefiniowanie zmiennych
 
 characters = "ETANIMSOUDKRGWHBCFJLPQVXYZ0123456789?!/"
+
+training = 1
+batch = 7
 n = 4  # pula znakow do wyboru od poczatku listy
 
 character_list = list(characters)
-char_range = (2, 7)
+char_range = (2, 5)
 speed_range = (18, 25)
 freq_range = (500, 900)
 min_sep = 50
@@ -17,15 +20,14 @@ sidetone = 700
 start_between_ms = (500, 1500)
 stop_b4_end = 1000
 nr_of_freq = 2
-nr_of_qrm_freq = 0
-qrm_length = (800, 3000)
+nr_of_qrm_freq = 1
+qrm_length = (800, 2000)
 qrm_start_between = (300, 2000)
 min_volume = 0.3
 total_length = 5000
-noise = False
+noise = True
 num_files_to_generate = 10
-training = 1
-batch = 5
+
 
 json_directory_ = 'json_folder'
 # Formatowanie wartości z wiodącymi zerami
@@ -191,6 +193,7 @@ for file_number in range(1, num_files_to_generate + 1):
         "nr_of_freq": nr_of_freq, 
         "training": training,
         "batch": batch,
+        "S/N (dB)": None,
         "elements": []
         }
     frequencies = []
@@ -246,23 +249,8 @@ for file_number in range(1, num_files_to_generate + 1):
         json.dump(json_data, file, ensure_ascii=False, indent=2)
 
 
-print("labels")
-with open('labels.py', 'r') as file:
-    code = file.read()
-    # Tworzenie zmiennej, którą chcesz przekazać
-    parametr = f"{json_directory_}_{formatted_training}_{formatted_batch}"
-    # Wykonanie kodu z modyfikacją zmiennych globalnych
-    exec(code, {'directory': parametr})
 
 
-if noise:
-    print("Noise")
-    with open('noise_bulk.py', 'r') as file:
-        code = file.read()
-        # Tworzenie zmiennej, którą chcesz przekazać
-        parametr = f"{json_directory_}_{formatted_training}_{formatted_batch}"
-        # Wykonanie kodu z modyfikacją zmiennych globalnych
-        exec(code, {'input_folder': parametr})
 
 
 print("wav")
@@ -272,6 +260,15 @@ with open('wav_dd.py', 'r') as file:
     parametr = f"{json_directory_}_{formatted_training}_{formatted_batch}"
     # Wykonanie kodu z modyfikacją zmiennych globalnych
     exec(code, {'directory': parametr})
+
+if noise:
+    print("Noise")
+    with open('noise_bulk.py', 'r') as file:
+        code = file.read()
+        # Tworzenie zmiennej, którą chcesz przekazać
+        parametr = f"{json_directory_}_{formatted_training}_{formatted_batch}"
+        # Wykonanie kodu z modyfikacją zmiennych globalnych
+        exec(code, {'input_folder': parametr})
     
 print("fftg")    
 with open('fftg.py', 'r') as file:
@@ -280,3 +277,11 @@ with open('fftg.py', 'r') as file:
     parametr = f"{json_directory_}_{formatted_training}_{formatted_batch}"
    # Wykonanie kodu z modyfikacją zmiennych globalnych
     exec(code, {'wav_directory': parametr})
+    
+print("labels")
+with open('labels.py', 'r') as file:
+    code = file.read()
+    # Tworzenie zmiennej, którą chcesz przekazać
+    parametr = f"{json_directory_}_{formatted_training}_{formatted_batch}"
+    # Wykonanie kodu z modyfikacją zmiennych globalnych
+    exec(code, {'directory': parametr})

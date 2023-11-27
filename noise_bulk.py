@@ -11,9 +11,9 @@ import numpy as np
 import random
 
 if __name__ == '__main__':
-    input_folder = 'json_folder'
+    input_folder = 'json_folder_001_006'
 
-output_folder = input_folder
+##output_folder =  'json_folder' ## input_folder
 
 start_time = time.time()
 
@@ -48,14 +48,16 @@ def add_variable_noise_to_audio(input_folder, snr_range, variability_percentage)
                     noise_sample = np.random.normal(scale=np.sqrt(noise_energy))
                     noisy_sample = audio_data[j] + noise_sample
                     noisy_audio[j] = np.clip(noisy_sample, -32768, 32767) if not np.isnan(noisy_sample) else 0
-
+            print(file_path)
             with wave.open(file_path, 'wb') as output:
                 output.setnchannels(1)
                 output.setsampwidth(sample_width)
                 output.setframerate(framerate)
                 output.writeframes(noisy_audio.tobytes())
-
-            json_filename = os.path.join(input_folder, f'label_{label:05}.json')
+                
+           
+            json_filename = os.path.join(input_folder, f'cw_{label:05}.json')
+            print(json_filename)
             if os.path.exists(json_filename):
                 with open(json_filename, 'r') as json_file:
                     json_data = json.load(json_file)
@@ -64,10 +66,10 @@ def add_variable_noise_to_audio(input_folder, snr_range, variability_percentage)
 
                 with open(json_filename, 'w') as json_file:
                     json.dump(json_data, json_file, indent=4)
-    
+           
 
 
 
-add_variable_noise_to_audio(input_folder, (-5, 0), 10) # (zakres), zmiennosc w %)
+add_variable_noise_to_audio(input_folder, (-5, -1), 10) # (zakres), zmiennosc w %)
 elapsed_time = round(time.time() - start_time, 2)
 print(f"Czas wykonania skryptu: {elapsed_time} sekund.")
