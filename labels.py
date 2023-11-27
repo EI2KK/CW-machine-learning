@@ -15,9 +15,9 @@ def process_json_files_v7(directory, window, overlap):
     window (int): The window length in milliseconds.
     overlap (int): The overlap length in milliseconds.
     """
-    fields_to_copy = ["cw_file", "npy_file", "session_duration_ms", "noise", "speed_range",
+    fields_to_copy = ["cw_file", "npy_file", "session_duration_ms", "noise", "S/N (dB)", "speed_range",
                       "freq_range", "start_between_ms", "stop_b4_end", "nr_of_freq",
-                      "training", "batch", "S/N (dB)"]
+                      "training", "batch"]
 
     element_to_vector = {
         "dot":          "000001",

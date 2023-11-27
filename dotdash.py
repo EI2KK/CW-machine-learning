@@ -186,6 +186,7 @@ for file_number in range(1, num_files_to_generate + 1):
         "npy_file": f"cw_{file_number:05}.npy",
         "session_duration_ms": total_length, 
         "noise": noise,
+        "S/N (dB)": None,
         "speed_range": speed_range,
         "freq_range": freq_range,
         "start_between_ms": start_between_ms,
@@ -193,7 +194,6 @@ for file_number in range(1, num_files_to_generate + 1):
         "nr_of_freq": nr_of_freq, 
         "training": training,
         "batch": batch,
-        "S/N (dB)": None,
         "elements": []
         }
     frequencies = []
