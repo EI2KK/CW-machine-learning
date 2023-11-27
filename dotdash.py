@@ -5,18 +5,19 @@ import os
 # Zdefiniowanie zmiennych
 
 characters = "ETANIMSOUDKRGWHBCFJLPQVXYZ0123456789?!/"
-n = 10  # pula znakow do wyboru od poczatku listy
+n = 4  # pula znakow do wyboru od poczatku listy
 
 character_list = list(characters)
 char_range = (2, 7)
 speed_range = (18, 25)
 freq_range = (500, 900)
 min_sep = 50
+qrm_sep = 50
 sidetone = 700
 start_between_ms = (500, 1500)
 stop_b4_end = 1000
 nr_of_freq = 2
-nr_of_qrm_freq = 1
+nr_of_qrm_freq = 0
 qrm_length = (800, 3000)
 qrm_start_between = (300, 2000)
 min_volume = 0.3
@@ -77,14 +78,9 @@ with open(json_file_name, 'w') as file:
     json.dump(data, file, indent=4)
 
 
-
-
-
 # Tworzenie nazwy katalogu i katalogu
 directory_name = f"{json_directory_}_{training:03}_{batch:03}"
 os.makedirs(directory_name, exist_ok=True)
-
-
 
 # Morse code mapping dictionary
 morse_code = {
@@ -199,7 +195,7 @@ for file_number in range(1, num_files_to_generate + 1):
         }
     frequencies = []
     frequencies = generate_frequencies(nr_of_freq, freq_range, min_sep)
-    qrm_frequencies = generate_qrm_frequencies(nr_of_qrm_freq, freq_range, min_sep, frequencies)
+    qrm_frequencies = generate_qrm_frequencies(nr_of_qrm_freq, freq_range, qrm_sep, frequencies)
     
         
     for _ in range(nr_of_freq):
@@ -244,8 +240,6 @@ for file_number in range(1, num_files_to_generate + 1):
         
         json_data["elements"].append(qrm_data)    
     
-    print(qrm_data)
-
     file_name = f"cw_{file_number:05}.json"
     file_path = os.path.join(directory_name, file_name)
     with open(file_path, 'w', encoding='utf-8') as file:
