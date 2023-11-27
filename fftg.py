@@ -64,5 +64,17 @@ for wav_file in wav_files:
     freq_min = 300  # Dolna granica analizowanego zakresu częstotliwości
     freq_max = 1000  # Górna granica analizowanego zakresu częstotliwości
     plot_spectrogram(wav_file, freq_min, freq_max)
+"""
+freq 300 do 1000
+Dla okna 250 ms:    33×11=363 neuronów
+Dla okna 500 ms:    33×22=726 neuronów
+Dla okna 1000 ms:   33×44=1452 neuronów
 
 
+Zmiana zakresu częstotliwości na 500-900 Hz powoduje, że liczba pasm częstotliwościowych w spektrogramie wynosi teraz 18. Dla różnych okien czasowych, liczba neuronów w warstwie wejściowej modelu uczenia maszynowego będzie teraz wynosić:
+
+Dla okna 250 ms:    18×11=198 neuronów
+Dla okna 500 ms:    18×22=396 neuronów
+Dla okna 1000 ms:   18×44=792 neuronów
+
+"""

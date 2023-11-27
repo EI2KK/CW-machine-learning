@@ -3,7 +3,7 @@ import json
 import os
 
 # Zdefiniowanie zmiennych
-characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789?! "
+characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789?!"
 character_list = list(characters)
 char_range = (2, 7)
 speed_range = (18, 25)
@@ -12,10 +12,10 @@ min_sep = 50
 sidetone = 700
 start_between_ms = (500, 1500)
 stop_b4_end = 1000
-nr_of_freq = 4
+nr_of_freq = 2
 min_volume = 0.3
-total_length = 10000
-noise = True
+total_length = 5000
+noise = False
 num_files_to_generate = 10
 training = 1
 batch = 4
@@ -23,6 +23,54 @@ json_directory_ = 'json_folder'
 # Formatowanie wartości z wiodącymi zerami
 formatted_training = f"{training:03}"  # Formatuje 'training' do postaci trzycyfrowej
 formatted_batch = f"{batch:03}"  # Formatuje 'batch' do postaci trzycyfrowej
+
+## zapis danych o wygenerowanych plikach
+
+json_file_name = 'training.json'
+
+# Formatowanie wartości z wiodącymi zerami
+formatted_training = f"{training:03}"  # Formatuje 'training' do postaci trzycyfrowej
+formatted_batch = f"{batch:03}"  # Formatuje 'batch' do postaci trzycyfrowej
+
+# Tworzenie nowej nazwy katalogu
+json_directory = f"{json_directory_}_{formatted_training}_{formatted_batch}"
+
+# Struktura danych do zapisania
+data_to_save = {
+    'completed': None,
+    'formatted_training': formatted_training,
+    'formatted_batch': formatted_batch,
+    'json_directory': json_directory,
+    }
+
+# Sprawdzanie, czy plik JSON już istnieje
+if os.path.exists(json_file_name):
+    # Odczytywanie istniejących danych
+    with open(json_file_name, 'r') as file:
+        data = json.load(file)
+    
+    # Sprawdzanie, czy istnieje wpis z tymi samymi wartościami formatted_training i formatted_batch
+    entry_found = False
+    for entry in data:
+        if entry['formatted_training'] == formatted_training and entry['formatted_batch'] == formatted_batch:
+            # Aktualizacja istniejącego wpisu
+            entry.update(data_to_save)
+            entry_found = True
+            break
+
+    if not entry_found:
+        # Dodanie nowego wpisu, jeśli nie znaleziono pasującego
+        data.append(data_to_save)
+else:
+    # Utworzenie nowego pliku z pierwszym wpisem
+    data = [data_to_save]
+
+# Zapisywanie danych do pliku JSON
+with open(json_file_name, 'w') as file:
+    json.dump(data, file, indent=4)
+
+
+
 
 
 # Tworzenie nazwy katalogu i katalogu
@@ -46,20 +94,28 @@ def generate_morse_data(char, start_time, speed, max_end_time):
     data = []
     morse_elements = morse_code[char]
     for index, element in enumerate(morse_elements):
+        # Dodanie kropki lub kreski
         next_time = start_time + (unit_duration if element == '.' else 3 * unit_duration)
         if next_time > max_end_time:
             break
-        data.append({"element": "dot" if element == '.' else "dash", "start_ms": start_time, "duration_ms": next_time - start_time})
+        data.append({"element": "dot" if element == '.' else "dash", "start_ms": start_time, "end_ms": next_time, "duration_ms": next_time - start_time})
         start_time = next_time
 
-        # Dodanie przerwy tylko jeśli to nie jest ostatni element znaku
+        # Dodanie przerwy (element_gap) tylko jeśli to nie jest ostatni element znaku
         if index < len(morse_elements) - 1:
             element_gap = start_time + unit_duration
             if element_gap > max_end_time:
                 break
+            # Dodanie informacji o przerwie jako 'element_end'
+            data.append({"element": "element_end", "start_ms": start_time, "end_ms": start_time + unit_duration, "duration_ms": unit_duration})
             start_time = element_gap
 
+    # Dodanie 'char_end' na koniec, nawet jeśli wykracza to poza max_end_time
+    data.append({"element": "char_end", "start_ms": start_time, "end_ms": start_time + unit_duration, "duration_ms": unit_duration})
+
     return data, start_time
+
+
 
 
 
@@ -73,14 +129,14 @@ def generate_word_data(word, start_time, speed, max_end_time):
         data.extend(char_data)
         char_end_time = start_time + 3 * 1200 / speed
         if char_end_time <= max_end_time:
-            data.append({"element": "char_end", "start_ms": start_time, "duration_ms": char_end_time - start_time})
+            data.append({"element": "char_end", "start_ms": start_time, "end_ms": char_end_time, "duration_ms": char_end_time - start_time})
             start_time = char_end_time
         else:
             break
 
     word_end_time = start_time + 7 * 1200 / speed
     if word_end_time <= max_end_time:
-        data.append({"element": "word_end", "start_ms": start_time, "duration_ms": word_end_time - start_time})
+        data.append({"element": "word_end", "start_ms": start_time, "end_ms": word_end_time, "duration_ms": word_end_time - start_time})
         start_time = word_end_time
     return data, start_time
 
@@ -104,6 +160,7 @@ for file_number in range(1, num_files_to_generate + 1):
 
     json_data = {
         "cw_file": f"cw_{file_number:05}.wav",
+        "npy_file": f"cw_{file_number:05}.npy",
         "session_duration_ms": total_length, 
         "noise": noise,
         "speed_range": speed_range,
@@ -153,6 +210,7 @@ for file_number in range(1, num_files_to_generate + 1):
 
 
 if noise:
+    print("Noise")
     with open('noise_bulk.py', 'r') as file:
         code = file.read()
         # Tworzenie zmiennej, którą chcesz przekazać
@@ -161,7 +219,7 @@ if noise:
         exec(code, {'input_folder': parametr})
 
 
-
+print("wav")
 with open('wav_dd.py', 'r') as file:
     code = file.read()
     # Tworzenie zmiennej, którą chcesz przekazać
@@ -169,6 +227,7 @@ with open('wav_dd.py', 'r') as file:
     # Wykonanie kodu z modyfikacją zmiennych globalnych
     exec(code, {'directory': parametr})
     
+print("fftg")    
 with open('fftg.py', 'r') as file:
     code = file.read()
     # Tworzenie zmiennej, którą chcesz przekazać

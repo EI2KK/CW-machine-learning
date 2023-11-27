@@ -12,7 +12,8 @@ import random
 
 if __name__ == '__main__':
     input_folder = 'json_folder'
-output_folder = "cw_audio_noise"
+
+output_folder = input_folder
 
 start_time = time.time()
 
@@ -67,6 +68,6 @@ def add_variable_noise_to_audio(input_folder, snr_range, variability_percentage)
 
 
 
-add_variable_noise_to_audio(input_folder, (-20, -10), 40)
+add_variable_noise_to_audio(input_folder, (-5, 0), 10) # (zakres), zmiennosc w %)
 elapsed_time = round(time.time() - start_time, 2)
 print(f"Czas wykonania skryptu: {elapsed_time} sekund.")

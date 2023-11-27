@@ -64,10 +64,11 @@ def process_json_file(json_file):
         
 
 def process_all_json_files(directory):
-    """Przetwarza wszystkie pliki JSON w podanym katalogu."""
+    """Przetwarza tylko pliki JSON zaczynające się od 'cw' w podanym katalogu."""
     for filename in os.listdir(directory):
-        if filename.endswith('.json'):
+        if filename.endswith('.json') and filename.startswith('cw'):
             process_json_file(os.path.join(directory, filename))
+
             
 print(directory)
 process_all_json_files(directory)
