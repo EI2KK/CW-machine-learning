@@ -93,7 +93,7 @@ def process_json_files_v7(directory, window, overlap):
                     sequence["elements"].append({
                         "start_ms": sequence["start_ms"],
                         "end_ms": sequence["end_ms"],
-                        "element": "000000",
+                        "element": "0000000",
                         "frequency": 0.0,
                         "speed_wpm": 0.0
                     })

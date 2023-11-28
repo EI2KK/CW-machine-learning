@@ -26,7 +26,7 @@ qrm_start_between = (300, 2000)
 min_volume = 0.3
 pause_probablilty = 35
 pause_length = 1600
-total_length = 10000
+total_length = 15000
 noise = False
 num_files_to_generate = 10
 
@@ -100,6 +100,7 @@ def generate_morse_data(char, start_time, speed, max_end_time):
     unit_duration = 1200 / speed  # Czas trwania pojedynczego dot
     data = []
     morse_elements = morse_code[char]
+    element_end = False
     for index, element in enumerate(morse_elements):
         # Dodanie kropki lub kreski
         next_time = start_time + (unit_duration if element == '.' else 3 * unit_duration)
@@ -107,18 +108,20 @@ def generate_morse_data(char, start_time, speed, max_end_time):
             break
         data.append({"element": "dot" if element == '.' else "dash", "start_ms": start_time, "end_ms": next_time, "duration_ms": next_time - start_time})
         start_time = next_time
-
+        element_end = False
         # Dodanie przerwy (element_gap) tylko jeśli to nie jest ostatni element znaku
         if index < len(morse_elements) - 1:
             element_gap = start_time + unit_duration
             if element_gap > max_end_time:
                 break
             # Dodanie informacji o przerwie jako 'element_end'
+            element_end = True
             data.append({"element": "element_end", "start_ms": start_time, "end_ms": start_time + unit_duration, "duration_ms": unit_duration})
             start_time = element_gap
 
     # Dodanie 'char_end' na koniec, nawet jeśli wykracza to poza max_end_time
-    data.append({"element": "element_end", "start_ms": start_time, "end_ms": start_time + unit_duration, "duration_ms": unit_duration})
+    if not element_end:
+        data.append({"element": "element_end", "start_ms": start_time, "end_ms": start_time + unit_duration, "duration_ms": unit_duration})
 
     return data, start_time
 
@@ -150,7 +153,7 @@ def generate_word_data(word, start_time, speed, max_end_time):
                     data.append({"element": "pause", "start_ms": word_start_time, "end_ms": word_end_time, "duration_ms": pause_length})
         
         
-        start_time = word_end_time
+    start_time = word_end_time
     return data, start_time
 
 
@@ -220,7 +223,6 @@ for file_number in range(1, num_files_to_generate + 1):
         start_time = random.randint(*start_between_ms)
         volume = round(random.uniform(min_volume, 1), 3)
         freq_data = {"frequency": frequency, "speed_wpm": speed, "output": 0, "volume": volume, "data": []}  # Dodano 'volume'
-
     
         limited_character_list = character_list[:n]
 
@@ -233,6 +235,9 @@ for file_number in range(1, num_files_to_generate + 1):
             start_time = new_start_time
             freq_data["data"].extend(word_data)
 
+        
+        if (total_length - start_time) >= pause_length:
+            print("final pause should be added")
         json_data["elements"].append(freq_data)
 
     # QRM    
