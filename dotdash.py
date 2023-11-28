@@ -13,15 +13,15 @@ n = 4  # pula znakow do wyboru od poczatku listy
 character_list = list(characters)
 char_range = (2, 5)
 speed_range = (18, 25)
-freq_range = (500, 900)
+freq_range = (300, 1000)
 min_sep = 50
 qrm_sep = 50
 sidetone = 700
 start_between_ms = (500, 1500)
-stop_b4_end = 1000
-nr_of_freq = 2
-nr_of_qrm_freq = 0
-qrm_length = (800, 8000)
+stop_b4_end = 2000 # must be grater than pause_length
+nr_of_freq = 4
+nr_of_qrm_freq = 3
+qrm_length = (800, 4000)  # max length must be less than total_length
 qrm_start_between = (300, 2000)
 min_volume = 0.3
 pause_probablilty = 35
@@ -143,6 +143,12 @@ def generate_word_data(word, start_time, speed, max_end_time):
             break
 
     word_end_time = word_start_time + 7 * 1200 / speed
+    
+    if word_end_time > (total_length - stop_b4_end):
+        data.append({"element": "word_end", "start_ms": word_start_time, "end_ms": word_end_time, "duration_ms": word_end_time - word_start_time})
+        data.append({"element": "pause", "start_ms": word_start_time, "end_ms": word_start_time + pause_length, "duration_ms": pause_length})
+        #print("koniec czasu")
+    
     if word_end_time <= max_end_time:
         data.append({"element": "word_end", "start_ms": word_start_time, "end_ms": word_end_time, "duration_ms": word_end_time - word_start_time})
         
@@ -235,9 +241,6 @@ for file_number in range(1, num_files_to_generate + 1):
             start_time = new_start_time
             freq_data["data"].extend(word_data)
 
-        
-        if (total_length - start_time) >= pause_length:
-            print("final pause should be added")
         json_data["elements"].append(freq_data)
 
     # QRM    
