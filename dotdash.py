@@ -148,7 +148,7 @@ def generate_word_data(word, start_time, speed, max_end_time):
         
         if (max_end_time - word_start_time) > pause_length:
                 x = random.randint(1, 100)
-                if x >= pause_probablilty:
+                if x <= pause_probablilty:
                     word_end_time = word_start_time + pause_length
                     data.append({"element": "pause", "start_ms": word_start_time, "end_ms": word_end_time, "duration_ms": pause_length})
         
