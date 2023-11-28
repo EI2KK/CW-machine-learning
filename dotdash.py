@@ -317,7 +317,7 @@ if noise:
         exec(code, {'input_folder': parametr})
         elapsed_time = round(time.time() - step_time, 2)
         step_time = time.time()
-        print(f"        :{elapsed_time}s, average {round(elapsed_time/num_files_to_generate, 2)}s per one .wav")
+        print(f"        :{elapsed_time}s.")
     
 print("FFT")    
 with open('fftg.py', 'r') as file:
