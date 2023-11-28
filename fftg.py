@@ -63,6 +63,7 @@ wav_files = glob.glob(os.path.join(wav_directory, '*.wav'))
 for wav_file in wav_files:
     freq_min = 300  # Dolna granica analizowanego zakresu częstotliwości
     freq_max = 1000  # Górna granica analizowanego zakresu częstotliwości
+    print(f"{os.path.basename(wav_file)}", end='\r')
     plot_spectrogram(wav_file, freq_min, freq_max)
 """
 freq 300 do 1000

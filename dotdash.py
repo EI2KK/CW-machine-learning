@@ -10,7 +10,7 @@ print("JSON")
 characters = "ETANIMSOUDKRGWHBCFJLPQVXYZ0123456789?!/"
 
 training = 1
-batch = 10
+batch = 12
 n = 6  # pula znakow do wyboru od poczatku listy
 
 character_list = list(characters)
@@ -31,7 +31,7 @@ pause_probablilty = 35
 pause_length = 1600
 total_length = 10000
 noise = True
-num_files_to_generate = 500
+num_files_to_generate = 100
 
 
 json_directory_ = 'json_folder'

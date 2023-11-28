@@ -53,6 +53,7 @@ def process_json_file(json_file):
 
         # Zapisanie do pliku WAV
         output_filename = os.path.splitext(json_file)[0] + '.wav'
+        print(f"{os.path.basename(output_filename)}", end='\r')
         with wave.open(output_filename, 'w') as wav_file:
             wav_file.setnchannels(1)
             wav_file.setsampwidth(2)

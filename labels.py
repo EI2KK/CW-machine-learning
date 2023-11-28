@@ -52,7 +52,7 @@ def process_json_files_v7(directory, window, overlap):
 
             label_filename = "label_" + filename.split("_")[1]
             label_path = os.path.join(directory, label_filename)
-
+            print(f"{label_filename}", end='\r')
             label_data = {field: data[field] for field in fields_to_copy if field in data}
 
             # Calculate sequences
@@ -69,6 +69,7 @@ def process_json_files_v7(directory, window, overlap):
 
             # Process elements for each sequence
             for sequence in label_data["sequences"]:
+                
                 for element_group in data.get("elements", []):
                     normalized_frequency = normalize_frequency(element_group["frequency"])
                     normalized_speed_wpm = normalize_speed_wpm(element_group["speed_wpm"])
@@ -113,12 +114,6 @@ def process_json_files_v7(directory, window, overlap):
             # Save the label file
             with open(label_path, 'w') as label_file:
                 json.dump(label_data, label_file, indent=4)
-
-# Example usage:
-# process_json_files_v7("path/to/directory", 1000, 500)
-# Note: This is a demonstration and the function needs a real directory path to execute.
-
-
 
 # Example usage:
 process_json_files_v7(directory, 500, 250)
