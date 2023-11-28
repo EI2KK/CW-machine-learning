@@ -69,6 +69,4 @@ def process_all_json_files(directory):
         if filename.endswith('.json') and filename.startswith('cw'):
             process_json_file(os.path.join(directory, filename))
 
-            
-print(directory)
 process_all_json_files(directory)
