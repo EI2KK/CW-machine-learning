@@ -20,13 +20,13 @@ sidetone = 700
 start_between_ms = (500, 1500)
 stop_b4_end = 1000
 nr_of_freq = 2
-nr_of_qrm_freq = 1
+nr_of_qrm_freq = 0
 qrm_length = (800, 8000)
 qrm_start_between = (300, 2000)
 min_volume = 0.3
 pause_probablilty = 35
 pause_length = 1600
-total_length = 15000
+total_length = 7000
 noise = False
 num_files_to_generate = 10
 
@@ -100,7 +100,7 @@ def generate_morse_data(char, start_time, speed, max_end_time):
     unit_duration = 1200 / speed  # Czas trwania pojedynczego dot
     data = []
     morse_elements = morse_code[char]
-    element_end = False
+
     for index, element in enumerate(morse_elements):
         # Dodanie kropki lub kreski
         next_time = start_time + (unit_duration if element == '.' else 3 * unit_duration)
@@ -110,18 +110,18 @@ def generate_morse_data(char, start_time, speed, max_end_time):
         start_time = next_time
         element_end = False
         # Dodanie przerwy (element_gap) tylko jeśli to nie jest ostatni element znaku
-        if index < len(morse_elements) - 1:
-            element_gap = start_time + unit_duration
-            if element_gap > max_end_time:
-                break
-            # Dodanie informacji o przerwie jako 'element_end'
-            element_end = True
-            data.append({"element": "element_end", "start_ms": start_time, "end_ms": start_time + unit_duration, "duration_ms": unit_duration})
-            start_time = element_gap
+        #if index < len(morse_elements) - 1:
+        element_gap = start_time + unit_duration
+        if element_gap > max_end_time:
+            break
+        # Dodanie informacji o przerwie jako 'element_end'
+
+        data.append({"element": "element_end", "start_ms": start_time, "end_ms": start_time + unit_duration, "duration_ms": unit_duration})
+        start_time = element_gap
 
     # Dodanie 'char_end' na koniec, nawet jeśli wykracza to poza max_end_time
-    if not element_end:
-        data.append({"element": "element_end", "start_ms": start_time, "end_ms": start_time + unit_duration, "duration_ms": unit_duration})
+    
+    data.append({"element": "char_end", "start_ms": start_time, "end_ms": start_time + (3 * unit_duration), "duration_ms": (3 * unit_duration)})
 
     return data, start_time
 
@@ -136,7 +136,7 @@ def generate_word_data(word, start_time, speed, max_end_time):
         char_end_time = start_time + 3 * 1200 / speed
         word_start_time = start_time
         if char_end_time <= max_end_time:
-            data.append({"element": "char_end", "start_ms": start_time, "end_ms": char_end_time, "duration_ms": char_end_time - start_time})
+            #data.append({"element": "char_end", "start_ms": start_time, "end_ms": char_end_time, "duration_ms": char_end_time - start_time})
                         
             start_time = char_end_time
         else:
