@@ -20,13 +20,13 @@ def process_json_files_v7(directory, window, overlap):
                       "training", "batch"]
 
     element_to_vector = {
-        "dot":          "000001",
-        "dash":         "000010",
-        "element_end":  "000100",
-        "char_end":     "001000",
-        "word_end":     "010000",
-        "qrm":          "100000",
-        
+        "dot":          "0000001",
+        "dash":         "0000010",
+        "element_end":  "0000100",
+        "char_end":     "0001000",
+        "word_end":     "0010000",
+        "qrm":          "0100000",
+        "pause":        "1000000"
     }
 
     # Normalization functions

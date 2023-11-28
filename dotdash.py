@@ -21,11 +21,13 @@ start_between_ms = (500, 1500)
 stop_b4_end = 1000
 nr_of_freq = 2
 nr_of_qrm_freq = 1
-qrm_length = (800, 2000)
+qrm_length = (800, 8000)
 qrm_start_between = (300, 2000)
 min_volume = 0.3
-total_length = 5000
-noise = True
+pause_probablilty = 35
+pause_length = 1600
+total_length = 10000
+noise = False
 num_files_to_generate = 10
 
 
@@ -132,7 +134,7 @@ def generate_word_data(word, start_time, speed, max_end_time):
         word_start_time = start_time
         if char_end_time <= max_end_time:
             data.append({"element": "char_end", "start_ms": start_time, "end_ms": char_end_time, "duration_ms": char_end_time - start_time})
-            
+                        
             start_time = char_end_time
         else:
             break
@@ -140,6 +142,14 @@ def generate_word_data(word, start_time, speed, max_end_time):
     word_end_time = word_start_time + 7 * 1200 / speed
     if word_end_time <= max_end_time:
         data.append({"element": "word_end", "start_ms": word_start_time, "end_ms": word_end_time, "duration_ms": word_end_time - word_start_time})
+        
+        if (max_end_time - word_start_time) > pause_length:
+                x = random.randint(1, 100)
+                if x >= pause_probablilty:
+                    word_end_time = word_start_time + pause_length
+                    data.append({"element": "pause", "start_ms": word_start_time, "end_ms": word_end_time, "duration_ms": pause_length})
+        
+        
         start_time = word_end_time
     return data, start_time
 
@@ -239,7 +249,14 @@ for file_number in range(1, num_files_to_generate + 1):
         
         data = []
         data.append({"element": "qrm", "start_ms": start_time, "end_ms": start_time + qrm_duration, "duration_ms": qrm_duration})
-        qrm_data["data"].extend(data)
+        #qrm_data["data"].extend(data)
+        
+        if (1.8 * (start_time + qrm_duration)) < total_length:
+            start_time = (start_time + qrm_duration) + random.randint(300, 1200)
+            volume = round(random.uniform(min_volume, 1), 3)
+            qrm_duration = random.randint(*qrm_length)
+            data.append({"element": "qrm", "start_ms": start_time, "end_ms": start_time + qrm_duration, "duration_ms": qrm_duration})
+            qrm_data["data"].extend(data)
         
         json_data["elements"].append(qrm_data)    
     
