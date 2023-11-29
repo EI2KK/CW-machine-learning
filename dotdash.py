@@ -10,7 +10,7 @@ print("JSON")
 characters = "ETANIMSOUDKRGWHBCFJLPQVXYZ0123456789?!/"
 
 training = 1
-batch = 12
+batch = 14
 n = 6  # pula znakow do wyboru od poczatku listy
 
 character_list = list(characters)
@@ -29,9 +29,9 @@ qrm_start_between = (300, 2000)
 min_volume = 0.3
 pause_probablilty = 35
 pause_length = 1600
-total_length = 10000
+total_length = 12000
 noise = True
-num_files_to_generate = 100
+num_files_to_generate = 1
 
 
 json_directory_ = 'json_folder'
@@ -60,13 +60,15 @@ formatted_batch = f"{batch:03}"  # Formatuje 'batch' do postaci trzycyfrowej
 json_directory = f"{json_directory_}_{formatted_training}_{formatted_batch}"
 
 # Struktura danych do zapisania
+character_list_string = ','.join(character_list[:n])
 data_to_save = {
     'model':[],
     'training': formatted_training,
     'batch': formatted_batch,
     'audio_length': sec_to_hhmmss(num_files_to_generate * total_length / 1000),
     'directory': json_directory,
-    'characters': n
+    'characters': n,
+    'character_list': character_list_string
     }
 
 # Sprawdzanie, czy plik JSON już istnieje
@@ -292,7 +294,7 @@ for file_number in range(1, num_files_to_generate + 1):
 
 
 elapsed_time = round(time.time() - script_start_time, 2)
-print(f"        :{elapsed_time}s.")
+print(f"        :{elapsed_time}s.   ")
 step_time = time.time()
 
 print("WAV")
@@ -304,7 +306,7 @@ with open('wav_dd.py', 'r') as file:
     exec(code, {'directory': parametr})
     elapsed_time = round(time.time() - step_time, 2)
     step_time = time.time()
-    print(f"        :{elapsed_time}s.")
+    print(f"        :{elapsed_time}s.   ")
     
 
 if noise:
@@ -317,7 +319,7 @@ if noise:
         exec(code, {'input_folder': parametr})
         elapsed_time = round(time.time() - step_time, 2)
         step_time = time.time()
-        print(f"        :{elapsed_time}s.")
+        print(f"        :{elapsed_time}s.   ")
     
 print("FFT")    
 with open('fftg.py', 'r') as file:
@@ -328,7 +330,7 @@ with open('fftg.py', 'r') as file:
     exec(code, {'wav_directory': parametr})
     elapsed_time = round(time.time() - step_time, 2)
     step_time = time.time()
-    print(f"        :{elapsed_time}s.")
+    print(f"        :{elapsed_time}s.   ")
     
 print("LABEL")
 with open('labels.py', 'r') as file:
@@ -339,9 +341,9 @@ with open('labels.py', 'r') as file:
     exec(code, {'directory': parametr})
     elapsed_time = round(time.time() - step_time, 2)
     step_time = time.time()
-    print(f"        :{elapsed_time}s.")
+    print(f"        :{elapsed_time}s.   ")
     
     
 elapsed_time = round(time.time() - script_start_time, 2)
-print(f"Total execution time: {elapsed_time}s.")
+print(f"Total execution time: {elapsed_time}s.  ")
 print(f"Total length of audio data : {sec_to_hhmmss(num_files_to_generate * total_length / 1000)}")

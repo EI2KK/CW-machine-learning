@@ -20,7 +20,7 @@ def plot_spectrogram(wav_file, freq_min, freq_max):
         audio = audio[:, 0]
 
     # Obliczenie spektrogramu
-    frequencies, times, Sxx = spectrogram(audio, fs=sample_rate, window='hann', 
+    frequencies, times, Sxx = spectrogram(audio, fs=sample_rate, # window='hann', 
                                       nperseg=2048, noverlap=1024)
                                       
                                       
@@ -68,14 +68,33 @@ for wav_file in wav_files:
 """
 freq 300 do 1000
 Dla okna 250 ms:    33×11=363 neuronów
-Dla okna 500 ms:    33×22=726 neuronów
-Dla okna 1000 ms:   33×44=1452 neuronów
+Dla okna 500 ms:    33×21=693 neuronów
+Dla okna 1000 ms:   33×43=1419 neuronów
 
 
-Zmiana zakresu częstotliwości na 500-900 Hz powoduje, że liczba pasm częstotliwościowych w spektrogramie wynosi teraz 18. Dla różnych okien czasowych, liczba neuronów w warstwie wejściowej modelu uczenia maszynowego będzie teraz wynosić:
+Hann (Hanning):
 
-Dla okna 250 ms:    18×11=198 neuronów
-Dla okna 500 ms:    18×22=396 neuronów
-Dla okna 1000 ms:   18×44=792 neuronów
+Użyj window='hann' lub window='hanning'.
+Hamming:
+
+Użyj window='hamming'.
+Blackman:
+
+Użyj window='blackman'.
+Bartlett (Trójkątne):
+
+Użyj window='bartlett'.
+Kaiser:
+
+Kaiser wymaga dodatkowego parametru (beta). Użyj window=('kaiser', beta), gdzie beta to wartość numeryczna (np. beta=14).
+Gaussian:
+
+Gaussian również wymaga dodatkowego parametru (odchylenie standardowe). Użyj window=('gaussian', std) gdzie std to odchylenie standardowe (np. std=0.5).
+Prostokątne (Rectangular):
+
+Użyj window='boxcar' lub po prostu nie ustawiaj parametru window, ponieważ jest to domyślne okno.
+Triangular:
+
+Użyj window='triang'.
 
 """
