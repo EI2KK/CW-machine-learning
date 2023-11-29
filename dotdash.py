@@ -36,11 +36,11 @@ num_files_to_generate = 1
 
 json_directory_ = 'json_folder'
 
-def sec_to_hhmmss(sekundy):
-    sekundy = int(sekundy)  
-    godziny, reszta = divmod(sekundy, 3600)
-    minuty, sekundy = divmod(reszta, 60)
-    return "{:02}:{:02}:{:02}".format(godziny, minuty, sekundy)
+def sec_to_hhmmss(sec):
+    sec = int(sec)  
+    hr, rem = divmod(sec, 3600)
+    minuts, sec = divmod(rem, 60)
+    return "{:02}:{:02}:{:02}".format(hr, minuts, sec)
 
 
 
