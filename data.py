@@ -171,6 +171,11 @@ print(f"Przekształcone wymiary danych: {reshaped_data.shape}")
 
 """  
 # Trenowanie modelu
+
+best_val_accuracy = 0
+patience = 10
+no_improvement_epochs = 0
+
 for epoch in range(num_epochs):
     print(f"Epoch {epoch+1}/{num_epochs}")
     
@@ -186,13 +191,24 @@ for epoch in range(num_epochs):
     for file_data_label_pair in validation_data_label_pairs:
         for data, labels in file_data_label_pair:
             loss, accuracy = model.evaluate(data, labels, verbose=0)
-            validation_loss += loss
-            validation_accuracy += accuracy
-            total_validation_batches += 1
+            
+            
+    # Sprawdzenie, czy nastąpiła poprawa
+    if val_accuracy > best_val_accuracy:
+        best_val_accuracy = val_accuracy
+        no_improvement_epochs = 0
+        # Opcjonalnie: Zapisz model
+        model.save('best_model.h5')
+    else:
+        no_improvement_epochs += 1
 
-    validation_loss /= total_validation_batches
-    validation_accuracy /= total_validation_batches
-    print(f"Validation loss: {validation_loss}, Validation accuracy: {validation_accuracy}")
+    # Sprawdzenie warunku early stopping
+    if no_improvement_epochs >= patience:
+        print(f"Early stopping po {epoch+1} epokach.")
+        break
+    
+    
+
 
 """
 
