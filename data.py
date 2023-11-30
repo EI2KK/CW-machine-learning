@@ -176,6 +176,8 @@ best_val_accuracy = 0
 patience = 10
 no_improvement_epochs = 0
 
+model = load_model('best_model.h5')
+
 for epoch in range(num_epochs):
     print(f"Epoch {epoch+1}/{num_epochs}")
     
