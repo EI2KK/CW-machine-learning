@@ -180,6 +180,7 @@ model = load_model('best_model.h5')
 
 for epoch in range(num_epochs):
     print(f"Epoch {epoch+1}/{num_epochs}")
+    random.shuffle(train_data_label_pairs)
     
     # Trening
     for file_data_label_pair in train_data_label_pairs:
