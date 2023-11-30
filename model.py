@@ -3,17 +3,16 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, Dropout, Attention
 from tensorflow.keras.optimizers import Adam
 
-# Wymiary danych wejściowych - należy je dostosować do Twoich danych
-input_shape = (None, num_features)  # 'None' dla zmiennego rozmiaru sekwencji, 'num_features' to liczba cech na krok czasowy
 
-# Parametry modelu - dostosuj je do swoich potrzeb
 lstm_units = 128  # Liczba jednostek w warstwach LSTM
 dense_units = 64  # Liczba jednostek w warstwach gęsto połączonych
 num_classes = 7   # Liczba klas/etykiet do rozpoznania
 dropout_rate = 0.5
 learning_rate = 0.001
+num_features = 726
 
-
+# Wymiary danych wejściowych - należy je dostosować do Twoich danych
+input_shape = (None, num_features)  # 'None' dla zmiennego rozmiaru sekwencji,
 # Parametry wejściowe modelu
 input_shape = (None, num_features)  # Dostosuj do swoich danych
 
@@ -51,3 +50,4 @@ model.compile(optimizer=Adam(learning_rate=learning_rate),
 
 # Wyświetlenie podsumowania modelu
 model.summary()
+

@@ -38,11 +38,13 @@ def process_json_files_v7(directory, window, overlap, step_ms):
         if filename.startswith("cw_") and filename.endswith(".json"):
             with open(os.path.join(directory, filename), 'r') as file:
                 data = json.load(file)
-
-            label_data = {
+            
+            label_data = {field: data[field] for field in fields_to_copy if field in data}
+            
+            label_data = {**label_data, **{
                 "sequences": [],
                 "session_duration_ms": data.get("session_duration_ms", 0),
-            }
+}}
 
             # Tworzenie sekwencji
             start_ms = 0

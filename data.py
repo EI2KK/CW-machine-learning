@@ -4,6 +4,24 @@ import numpy as np
 import random
 
 
+
+def reshape_data_for_model(data):
+    # Transponowanie danych, aby kroki czasowe były pierwsze
+    data_transposed = data.T  # Zmiana z (33, 22) na (22, 33)
+    print(data_transposed.shape)
+    # Przekształcenie danych na wektor jednowymiarowy
+    reshaped_data = data_transposed.reshape(-1)
+    return reshaped_data
+
+
+def prepare_labels_for_model(labels):
+    # Zakładając, że 'labels' ma wymiary (22, 9)
+    classification_labels = labels[:, :7]  # Pierwsze 7 cech dla klasyfikacji
+    regression_labels = labels[:, 7:]      # Ostatnie 2 cechy dla regresji
+
+    return [classification_labels, regression_labels]
+
+
 def process_sequence_elements(sequence, num_time_steps=22):
     # Inicjalizacja struktury etykiet dla całej porcji danych
     labels_for_this_portion = np.zeros((num_time_steps, 9))  # Zakładając, że etykiety mają 9 elementów
@@ -79,16 +97,7 @@ def load_and_process_spectrogram(file_path, num_steps=22, num_features=33, overl
 
 
 def process_files(files, npy_folder, json_folder, num_time_steps=22, num_features=33, overlap_steps=11):
-    """
-    Przetwarza pliki NPY i wczytuje odpowiadające im etykiety.
-
-    :param files: Lista plików do przetworzenia.
-    :param npy_folder: Ścieżka do folderu z plikami NPY.
-    :param json_folder: Ścieżka do folderu z plikami JSON.
-    :param num_time_steps, num_features, overlap_steps: Parametry przetwarzania danych.
-    :return: Lista par (porcja danych, etykiety).
-    """
-    data_label_pairs = []
+    file_data_label_pairs = []
 
     for file_name in files:
         npy_file_path = os.path.join(npy_folder, file_name)
@@ -96,18 +105,17 @@ def process_files(files, npy_folder, json_folder, num_time_steps=22, num_feature
 
         if os.path.exists(npy_file_path) and os.path.exists(json_file_path):
             # Przetwarzanie danych
-            data_portions = load_and_process_spectrogram(
-                npy_file_path, num_time_steps, num_features, overlap_steps
-            )
+            data_portions = load_and_process_spectrogram(npy_file_path, num_time_steps, num_features, overlap_steps)
             
             # Wczytywanie i przetwarzanie etykiet
             labels = load_and_process_labels(json_file_path, num_time_steps)
 
-            # Dopasowanie etykiet do danych i dodanie do listy
-            for data, label in zip(data_portions, labels):
-                data_label_pairs.append((data, label))
+            # Zbieranie danych i etykiet dla danego pliku
+            data_label_pairs = list(zip(data_portions, labels))
+            file_data_label_pairs.append(data_label_pairs)
 
-    return data_label_pairs
+    return file_data_label_pairs
+
 
 
 
@@ -144,6 +152,51 @@ npy_folder = "json_folder_001_014"
 train_data_label_pairs = process_files(train_files, npy_folder, json_folder)
 validation_data_label_pairs = process_files(validation_files, npy_folder, json_folder)
 
+
+
+print(len(validation_data_label_pairs))
+
+prepared_labels = prepare_labels_for_model(train_data_label_pairs[0][12][1])
+
+#print(prepared_labels[0])
+#print(prepared_labels[1])
+# Przykładowe użycie
+# Załóżmy, że mamy przykładowe dane wejściowe 'data'
+data_example = train_data_label_pairs[0][0] # np.random.rand(33, 22)  # Przykładowe dane
+reshaped_data = reshape_data_for_model(data_example[0])
+
+
+print(f"Przekształcone wymiary danych: {reshaped_data.shape}")
+
+
+"""  
+# Trenowanie modelu
+for epoch in range(num_epochs):
+    print(f"Epoch {epoch+1}/{num_epochs}")
+    
+    # Trening
+    for file_data_label_pair in train_data_label_pairs:
+        for data, labels in file_data_label_pair:
+            model.train_on_batch(data, labels)  # Trenowanie na każdej porcji danych
+            print(labels)
+          
+    # Walidacja
+    validation_loss, validation_accuracy = 0, 0
+    total_validation_batches = 0
+    for file_data_label_pair in validation_data_label_pairs:
+        for data, labels in file_data_label_pair:
+            loss, accuracy = model.evaluate(data, labels, verbose=0)
+            validation_loss += loss
+            validation_accuracy += accuracy
+            total_validation_batches += 1
+
+    validation_loss /= total_validation_batches
+    validation_accuracy /= total_validation_batches
+    print(f"Validation loss: {validation_loss}, Validation accuracy: {validation_accuracy}")
+
+"""
+
+"""
 print(f"Liczba par danych i etykiet: {len(train_data_label_pairs)}")
 if train_data_label_pairs:
     print(f"Typ pierwszego elementu: {type(train_data_label_pairs[0])}")
@@ -172,3 +225,4 @@ for data, labels in train_data_label_pairs:
     
 
 # Tutaj masz listy 'training_data' i 'validation_data' z porcjami danych
+"""
