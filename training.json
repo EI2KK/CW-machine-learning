@@ -1,0 +1,11 @@
+[
+    {
+        "model": [],
+        "training": "001",
+        "batch": "014",
+        "audio_length": "00:02:00",
+        "directory": "json_folder_001_014",
+        "characters": 6,
+        "character_list": "E,T,A,N,I,M"
+    }
+]
