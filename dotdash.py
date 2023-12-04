@@ -30,8 +30,8 @@ min_volume = 0.3
 pause_probablilty = 35
 pause_length = 1600
 total_length = 12000
-noise = True
-num_files_to_generate = 1
+noise = False
+num_files_to_generate = 10
 
 
 json_directory_ = 'json_folder'
@@ -333,7 +333,7 @@ with open('fftg.py', 'r') as file:
     print(f"        :{elapsed_time}s.   ")
     
 print("LABEL")
-with open('labels.py', 'r') as file:
+with open('labels_steps.py', 'r') as file:
     code = file.read()
     # Tworzenie zmiennej, którą chcesz przekazać
     parametr = f"{json_directory_}_{formatted_training}_{formatted_batch}"

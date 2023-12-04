@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import os
 
 # Ścieżka do katalogu z plikami .npy
-folder_path = 'json_folder_001_014'  # Zmodyfikuj tę ścieżkę zgodnie z potrzebami
+folder_path = 'json_folder_001_001'  # Zmodyfikuj tę ścieżkę zgodnie z potrzebami
 
 # Listowanie wszystkich plików .npy w podanym katalogu
 npy_files = [f for f in os.listdir(folder_path) if f.endswith('.npy')]
@@ -28,5 +28,3 @@ for file in npy_files:
     plt.show(block=False)
     plt.waitforbuttonpress()
     plt.close()  # Zamykanie aktywnego okna wykresu
-
-

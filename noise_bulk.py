@@ -5,6 +5,7 @@ import random
 import json
 from concurrent.futures import ThreadPoolExecutor
 
+
 def add_noise_vectorized(audio_data, block_size, base_snr_in_db, variability_percentage, signal_energy):
     noisy_audio = np.copy(audio_data).astype(np.float64)
     for i in range(0, len(audio_data), block_size):
@@ -13,6 +14,7 @@ def add_noise_vectorized(audio_data, block_size, base_snr_in_db, variability_per
         noise = np.random.normal(scale=np.sqrt(noise_energy), size=min(block_size, len(audio_data) - i))
         noisy_audio[i:i + block_size] += noise
     return np.clip(noisy_audio, -32768, 32767).astype(np.int16)
+
 
 def process_file(file_path, snr_range, variability_percentage):
     with wave.open(file_path, 'rb') as audio:
@@ -39,6 +41,8 @@ def process_file(file_path, snr_range, variability_percentage):
         output.writeframes(noisy_audio.tobytes())
 
     return file_path, signal_energy, base_snr_in_db
+
+
 
 def add_variable_noise_to_audio(input_folder, snr_range, variability_percentage):
     file_paths = [os.path.join(input_folder, f) for f in os.listdir(input_folder) if f.endswith(".wav")]

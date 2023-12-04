@@ -68,7 +68,9 @@ def process_json_files_v7(directory, window, overlap, step_ms):
                     # Szukanie elementów pasujących do kroku czasowego
                     for element_group in data.get("elements", []):
                         for element in element_group.get("data", []):
-                            if (element["start_ms"] < step_end_ms and element["end_ms"] > step_start_ms):
+                            # if (element["start_ms"] < step_end_ms and element["end_ms"] > step_start_ms):
+                            if (element["end_ms"] < step_end_ms and element["end_ms"] >= step_start_ms):
+
                                 step_events.append({
                                     "frequency": normalize_frequency(element_group["frequency"]),
                                     "speed_wpm": normalize_speed_wpm(element_group["speed_wpm"]),
