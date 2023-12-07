@@ -1,35 +1,92 @@
-import tensorflow as tf
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Conv2D, MaxPooling2D, Dropout, Dense, Flatten, Reshape, LSTM
+import numpy as np
+import os
+import time 
 
-# Parametry
-input_shape = (22, 33, 1)  # 22 kroki czasowe, 33 cechy, 1 kanał
-num_classes = 33           # Liczba cech na wyjściu (taka sama jak na wejściu)
+# Ścieżka do katalogu z plikami .npy
+directory = 'json_folder_001_014'
 
-# Budowanie modelu
-model = Sequential()
-model.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=input_shape))
-model.add(MaxPooling2D(pool_size=(2, 2)))
-model.add(Dropout(0.25))
+def calculate_snr(spectrogram_path):
+    """
+    Oblicza stosunek sygnał-szum (SNR) dla spektrogramu zapisanego w pliku .npy.
+    
+    :param spectrogram_path: Ścieżka do pliku .npy zawierającego spektrogram.
+    :return: SNR w decybelach (dB).
+    """
+    # Wczytywanie spektrogramu
+    spectrogram = np.load(spectrogram_path)
 
-model.add(Conv2D(64, (3, 3), activation='relu'))
-model.add(MaxPooling2D(pool_size=(2, 2)))
-model.add(Dropout(0.25))
+    # Definiowanie zakresów sygnału i szumu
+    noise_region = spectrogram[:, -50:]  # Zakładamy, że ostatnie 50 kroków to szum
+    signal_region = spectrogram[:, :-50]  # Reszta to sygnał
 
-model.add(Flatten())
-model.add(Dense(128, activation='relu'))
-model.add(Dropout(0.5))
+    # Obliczanie mocy sygnału i szumu
+    power_signal = np.mean(signal_region**2)
+    power_noise = np.mean(noise_region**2)
 
-# Dodanie warstwy LSTM
-model.add(Reshape((-1, 128)))  # Dopasowanie wymiarów dla LSTM
-model.add(LSTM(64, return_sequences=True))
+    # Obliczanie SNR
+    SNR = 10 * np.log10(power_signal / power_noise) if power_noise != 0 else float('inf')
 
-# Dopasowanie wymiarów wyjścia do wejścia
-model.add(Dense(num_classes, activation='linear')) 
-model.add(Reshape((22, 33)))
+    return SNR
 
-model.compile(loss='mean_squared_error',
-              optimizer='adam',
-              metrics=['accuracy'])
 
-model.summary()
+def load_spectrograms(directory):
+    spectrograms = []
+    file_names = []
+    for file in os.listdir(directory):
+        if file.startswith("cw") and file.endswith(".npy"):
+            path = os.path.join(directory, file)
+            spectrogram = np.load(path)
+            spectrograms.append(spectrogram)
+            file_names.append(file)
+    return spectrograms, file_names
+
+def analyze_noise(spectrograms):
+    noise_profiles = []
+    for spec in spectrograms:
+        if spec.shape[1] >= 50:  # Sprawdzanie czy mamy przynajmniej 50 kroków czasowych
+            noise = spec[:, -50:]  # Ostatnie 50 kroków
+            noise_profile = np.mean(noise, axis=1)  # Średnia po krokach czasowych
+            noise_profiles.append(noise_profile)
+        else:
+            noise_profiles.append(None)
+    return noise_profiles
+
+def remove_noise_and_save(spectrograms, noise_profiles, file_names, directory, noise_reduction_factor=1.0):
+    for spec, noise_profile, file_name in zip(spectrograms, noise_profiles, file_names):
+        if noise_profile is not None:
+            # Kontrola agresywności usuwania szumu
+            adjusted_noise_profile = noise_profile * noise_reduction_factor
+            denoised_spec = spec - adjusted_noise_profile[:, None]
+        else:
+            denoised_spec = spec
+
+        new_file_name = "clean_" + file_name
+        save_path = os.path.join(directory, new_file_name)
+        np.save(save_path, denoised_spec)
+
+# Wartość `noise_reduction_factor` kontroluje, jak bardzo redukowany jest szum
+# 1.0 oznacza pełne usuwanie szumu zgodnie z profilem, mniejsze wartości będą mniej agresywne
+noise_reduction_factor = 1  # Możesz dostosować tę wartość
+
+
+
+
+# Wczytanie spektrogramów
+spectrograms, file_names = load_spectrograms(directory)
+
+# Analiza szumu
+noise_profiles = analyze_noise(spectrograms)
+
+# Usuwanie szumu i zapisywanie
+remove_noise_and_save(spectrograms, noise_profiles, file_names, directory, noise_reduction_factor)
+
+time.sleep(2)
+
+
+
+# Przykład użycia
+
+snr = calculate_snr('json_folder_001_014/cw_00001.npy')
+print(f'SNR: {snr} dB')
+snr = calculate_snr('json_folder_001_014/clean_cw_00001.npy')
+print(f'SNR: {snr} dB')
