@@ -344,6 +344,20 @@ with open('labels_steps.py', 'r') as file:
     print(f"        :{elapsed_time}s.   ")
     
     
+    
+
+print("Removing .vav and .json files...")
+def delete_files(directory, extensions):
+    for item in os.listdir(directory):
+        if item.endswith(extensions):
+            os.remove(os.path.join(directory, item))
+
+delete_files(json_directory, ('.wav'))
+
+elapsed_time = round(time.time() - step_time, 2)
+step_time = time.time()
+print(f"        :{elapsed_time}s.   ")
+
 elapsed_time = round(time.time() - script_start_time, 2)
 print(f"Total execution time: {elapsed_time}s.  ")
 print(f"Total length of audio data : {sec_to_hhmmss(num_files_to_generate * total_length / 1000)}")
