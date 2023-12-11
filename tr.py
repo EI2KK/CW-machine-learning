@@ -1,5 +1,6 @@
 import numpy as np
 import os
+import random
 
 # Wczytanie pliku .npy
 #label_data = np.load('json_folder_001_014/label_00001.npy', allow_pickle=True)
@@ -70,10 +71,24 @@ def load_and_process_data(data_folder):
 data_folder = 'json_folder_001_014'
 all_training_data = load_and_process_data(data_folder)
 
+train_percent = 0.8
+
+# Mieszanie danych
+random.shuffle(all_training_data)
+
+# Określenie liczby plików do treningu
+num_train_files = int(len(all_training_data) * train_percent)
+
+# Podział na dane treningowe i walidacyjne
+train_data = all_training_data[:num_train_files]
+validation_data = all_training_data[num_train_files:]
+
+
 # Check the first and last training data sequences
 first_sequence_matched = all_training_data[0]["file"][0]["sequence"][0]
 last_sequence_matched = all_training_data[0]["file"][0]["sequence"][-1]
 
-print(first_sequence_matched["data"].shape, last_sequence_matched["data"].shape, len(all_training_data[0]["file"][0]["sequence"]))
-print(all_training_data[0]["file"][0]["sequence"][54]) 
+#print(first_sequence_matched["data"].shape, last_sequence_matched["data"].shape, len(all_training_data[0]["file"][0]["sequence"]))
+
+print(all_training_data[0]["file"][0]["sequence"][30]) 
 
