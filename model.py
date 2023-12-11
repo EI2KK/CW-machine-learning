@@ -75,21 +75,23 @@ for record in data:
         directory = record["directory"]
         break
 data_folder = os.path.join(directory)
+split_data(data_folder, train_ratio=0.8)
+
 # Użycie funkcji
 # data_folder = 'json_folder_001_014'
-all_training_data = load_and_process_data(data_folder)
+# all_training_data = load_and_process_data(data_folder)
 
-train_percent = 0.8
+# train_percent = 0.8
 
 # Mieszanie danych
-random.shuffle(all_training_data)
+# random.shuffle(all_training_data)
 
 # Określenie liczby plików do treningu
-num_train_files = int(len(all_training_data) * train_percent)
+# num_train_files = int(len(all_training_data) * train_percent)
 
 # Podział na dane treningowe i walidacyjne
-train_data = all_training_data[:num_train_files]
-validation_data = all_training_data[num_train_files:]
+train_data = load_and_process_data(os.path.join(data_folder, "training")) # all_training_data[:num_train_files]
+validation_data = load_and_process_data(os.path.join(data_folder, "validation")) #  all_training_data[num_train_files:]
 
 num_epochs = 10  # Liczba epok treningu
 best_val_accuracy = 0  # Najlepsza dokładność walidacji
