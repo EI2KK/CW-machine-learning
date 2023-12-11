@@ -2,36 +2,35 @@ import random
 import json
 import os
 import time
+import numpy as np
+import shutil
 
 script_start_time = time.time()
 print("JSON")
-# Zdefiniowanie zmiennych
 
 characters = "ETANIMSOUDKRGWHBCFJLPQVXYZ0123456789?!/"
-
+character_list = list(characters)
+num_files_to_generate = 10
 training = 1
 batch = 14
-n = 6  # pula znakow do wyboru od poczatku listy
-
-character_list = list(characters)
+n = 6  # number of characters used 
 char_range = (2, 5)
 speed_range = (18, 25)
 freq_range = (300, 1000)
-min_sep = 50
-qrm_sep = 50
+min_sep = 30
+qrm_sep = 30
 sidetone = 700
-start_between_ms = (500, 1500)
-stop_b4_end = 2000 # must be grater than pause_length
-nr_of_freq = 4
-nr_of_qrm_freq = 3
-qrm_length = (800, 4000)  # max length must be less than total_length
-qrm_start_between = (300, 2000)
-min_volume = 0.3
+start_between_ms = (50, 300)
+stop_b4_end = 1800 # must be grater than pause_length
+nr_of_freq = 2
+nr_of_qrm_freq = 1
+qrm_length = (800, 24000)  # max length must be less than total_length
+qrm_start_between = (300, 1000)
+min_volume = 0.35
 pause_probablilty = 35
 pause_length = 1600
-total_length = 12000
-noise = False
-num_files_to_generate = 10
+total_length = 30000
+noise = True
 
 
 json_directory_ = 'json_folder'
@@ -42,21 +41,11 @@ def sec_to_hhmmss(sec):
     minuts, sec = divmod(rem, 60)
     return "{:02}:{:02}:{:02}".format(hr, minuts, sec)
 
-
-
-# Formatowanie wartości z wiodącymi zerami
-formatted_training = f"{training:03}"  # Formatuje 'training' do postaci trzycyfrowej
-formatted_batch = f"{batch:03}"  # Formatuje 'batch' do postaci trzycyfrowej
-
-## zapis danych o wygenerowanych plikach
+formatted_training = f"{training:03}" 
+formatted_batch = f"{batch:03}" 
 
 json_file_name = 'training.json'
 
-# Formatowanie wartości z wiodącymi zerami
-formatted_training = f"{training:03}"  # Formatuje 'training' do postaci trzycyfrowej
-formatted_batch = f"{batch:03}"  # Formatuje 'batch' do postaci trzycyfrowej
-
-# Tworzenie nowej nazwy katalogu
 json_directory = f"{json_directory_}_{formatted_training}_{formatted_batch}"
 
 # Struktura danych do zapisania
@@ -71,34 +60,28 @@ data_to_save = {
     'character_list': character_list_string
     }
 
-# Sprawdzanie, czy plik JSON już istnieje
+
 if os.path.exists(json_file_name):
-    # Odczytywanie istniejących danych
     with open(json_file_name, 'r') as file:
         data = json.load(file)
-    
-    # Sprawdzanie, czy istnieje wpis z tymi samymi wartościami formatted_training i formatted_batch
+   
+
     entry_found = False
     for entry in data:
         if entry['training'] == formatted_training and entry['batch'] == formatted_batch:
-            # Aktualizacja istniejącego wpisu
             entry.update(data_to_save)
             entry_found = True
             break
 
     if not entry_found:
-        # Dodanie nowego wpisu, jeśli nie znaleziono pasującego
         data.append(data_to_save)
 else:
-    # Utworzenie nowego pliku z pierwszym wpisem
     data = [data_to_save]
 
-# Zapisywanie danych do pliku JSON
+
 with open(json_file_name, 'w') as file:
     json.dump(data, file, indent=4)
 
-
-# Tworzenie nazwy katalogu i katalogu
 directory_name = f"{json_directory_}_{training:03}_{batch:03}"
 os.makedirs(directory_name, exist_ok=True)
 
@@ -112,37 +95,30 @@ morse_code = {
 }
 
 
-# Funkcja do generowania danych Morse'a dla pojedynczego znaku
 def generate_morse_data(char, start_time, speed, max_end_time):
     unit_duration = 1200 / speed  # Czas trwania pojedynczego dot
     data = []
     morse_elements = morse_code[char]
 
     for index, element in enumerate(morse_elements):
-        # Dodanie kropki lub kreski
         next_time = start_time + (unit_duration if element == '.' else 3 * unit_duration)
         if next_time > max_end_time:
             break
         data.append({"element": "dot" if element == '.' else "dash", "start_ms": start_time, "end_ms": next_time, "duration_ms": next_time - start_time})
         start_time = next_time
         element_end = False
-        # Dodanie przerwy (element_gap) tylko jeśli to nie jest ostatni element znaku
-        #if index < len(morse_elements) - 1:
         element_gap = start_time + unit_duration
         if element_gap > max_end_time:
             break
-        # Dodanie informacji o przerwie jako 'element_end'
-
+        
         data.append({"element": "element_end", "start_ms": start_time, "end_ms": start_time + unit_duration, "duration_ms": unit_duration})
         start_time = element_gap
-
-    # Dodanie 'char_end' na koniec, nawet jeśli wykracza to poza max_end_time
     
     data.append({"element": "char_end", "start_ms": start_time, "end_ms": start_time + (3 * unit_duration), "duration_ms": (3 * unit_duration)})
 
     return data, start_time
 
-# Funkcja do generowania danych Morse'a dla słowa
+
 def generate_word_data(word, start_time, speed, max_end_time):
     data = []
     for char in word:
@@ -153,8 +129,6 @@ def generate_word_data(word, start_time, speed, max_end_time):
         char_end_time = start_time + 3 * 1200 / speed
         word_start_time = start_time
         if char_end_time <= max_end_time:
-            #data.append({"element": "char_end", "start_ms": start_time, "end_ms": char_end_time, "duration_ms": char_end_time - start_time})
-                        
             start_time = char_end_time
         else:
             break
@@ -164,8 +138,7 @@ def generate_word_data(word, start_time, speed, max_end_time):
     if word_end_time > (total_length - stop_b4_end):
         data.append({"element": "word_end", "start_ms": word_start_time, "end_ms": word_end_time, "duration_ms": word_end_time - word_start_time})
         data.append({"element": "pause", "start_ms": word_start_time, "end_ms": word_start_time + pause_length, "duration_ms": pause_length})
-        #print("koniec czasu")
-    
+        
     if word_end_time <= max_end_time:
         data.append({"element": "word_end", "start_ms": word_start_time, "end_ms": word_end_time, "duration_ms": word_end_time - word_start_time})
         
@@ -181,7 +154,6 @@ def generate_word_data(word, start_time, speed, max_end_time):
 
 
 def generate_frequencies(nr_of_freq, freq_range, min_sep):
-    # Generowanie unikalnego zestawu częstotliwości
     possible_frequencies = set(range(freq_range[0], freq_range[1] + 1))
     frequencies = []
 
@@ -189,17 +161,14 @@ def generate_frequencies(nr_of_freq, freq_range, min_sep):
         frequency = random.choice(list(possible_frequencies))
         frequencies.append(frequency)
 
-        # Usuwanie częstotliwości zbyt bliskich do wybranej
         for freq in range(frequency - min_sep, frequency + min_sep + 1):
             possible_frequencies.discard(freq)
 
     return sorted(frequencies)
     
 def generate_qrm_frequencies(nr_of_qrm_freq, freq_range, min_sep, frequencies):
-    # Generowanie unikalnego zestawu możliwych częstotliwości
     possible_qrm_frequencies = set(range(freq_range[0], freq_range[1] + 1))
 
-    # Usuwanie częstotliwości zbyt bliskich do już wybranych w frequencies
     for freq in frequencies:
         for near_freq in range(freq - min_sep, freq + min_sep + 1):
             possible_qrm_frequencies.discard(near_freq)
@@ -209,9 +178,6 @@ def generate_qrm_frequencies(nr_of_qrm_freq, freq_range, min_sep, frequencies):
     while len(qrm_frequencies) < nr_of_qrm_freq and possible_qrm_frequencies:
         qrm_frequency = random.choice(list(possible_qrm_frequencies))
         qrm_frequencies.append(qrm_frequency)
-
-        # W tym przypadku, nie usuwamy częstotliwości bliskich do qrm_frequency
-        # ponieważ zachowujemy odstęp tylko od frequencies
 
     return sorted(qrm_frequencies)    
 
@@ -240,8 +206,6 @@ for file_number in range(1, num_files_to_generate + 1):
     for _ in range(nr_of_freq):
     
         frequency = frequencies[_]
-        #frequencies.append(frequency)
-        
         speed = random.randint(*speed_range)
         start_time = random.randint(*start_between_ms)
         volume = round(random.uniform(min_volume, 1), 3)
@@ -254,7 +218,7 @@ for file_number in range(1, num_files_to_generate + 1):
             word = ''.join(random.choices(limited_character_list, k=word_length))
             word_data, new_start_time = generate_word_data(word, start_time, speed, total_length - stop_b4_end)
             if new_start_time == start_time:
-                break  # Wyjdź z pętli, jeśli czas startu się nie zmienił
+                break
             start_time = new_start_time
             freq_data["data"].extend(word_data)
 
@@ -274,7 +238,7 @@ for file_number in range(1, num_files_to_generate + 1):
         
         data = []
         data.append({"element": "qrm", "start_ms": start_time, "end_ms": start_time + qrm_duration, "duration_ms": qrm_duration})
-        #qrm_data["data"].extend(data)
+        
         
         if (1.8 * (start_time + qrm_duration)) < total_length:
             start_time = (start_time + qrm_duration) + random.randint(300, 1200)
@@ -300,9 +264,7 @@ step_time = time.time()
 print("WAV")
 with open('wav_dd.py', 'r') as file:
     code = file.read()
-    # Tworzenie zmiennej, którą chcesz przekazać
     parametr = f"{json_directory_}_{formatted_training}_{formatted_batch}"
-    # Wykonanie kodu z modyfikacją zmiennych globalnych
     exec(code, {'directory': parametr})
     elapsed_time = round(time.time() - step_time, 2)
     step_time = time.time()
@@ -313,9 +275,7 @@ if noise:
     print("NOISE")
     with open('noise_bulk.py', 'r') as file:
         code = file.read()
-        # Tworzenie zmiennej, którą chcesz przekazać
         parametr = f"{json_directory_}_{formatted_training}_{formatted_batch}"
-        # Wykonanie kodu z modyfikacją zmiennych globalnych
         exec(code, {'input_folder': parametr})
         elapsed_time = round(time.time() - step_time, 2)
         step_time = time.time()
@@ -324,26 +284,20 @@ if noise:
 print("FFT")    
 with open('fftg.py', 'r') as file:
     code = file.read()
-    # Tworzenie zmiennej, którą chcesz przekazać
     parametr = f"{json_directory_}_{formatted_training}_{formatted_batch}"
-   # Wykonanie kodu z modyfikacją zmiennych globalnych
     exec(code, {'wav_directory': parametr})
     elapsed_time = round(time.time() - step_time, 2)
     step_time = time.time()
     print(f"        :{elapsed_time}s.   ")
     
 print("LABEL")
-with open('labels_steps.py', 'r') as file:
+with open('label_npy.py', 'r') as file:
     code = file.read()
-    # Tworzenie zmiennej, którą chcesz przekazać
     parametr = f"{json_directory_}_{formatted_training}_{formatted_batch}"
-    # Wykonanie kodu z modyfikacją zmiennych globalnych
     exec(code, {'directory': parametr})
     elapsed_time = round(time.time() - step_time, 2)
     step_time = time.time()
     print(f"        :{elapsed_time}s.   ")
-    
-    
     
 
 print("Removing .vav and .json files...")
@@ -352,11 +306,40 @@ def delete_files(directory, extensions):
         if item.endswith(extensions):
             os.remove(os.path.join(directory, item))
 
-delete_files(json_directory, ('.wav'))
+delete_files(json_directory, ('.wav', '.json'))
 
 elapsed_time = round(time.time() - step_time, 2)
 step_time = time.time()
 print(f"        :{elapsed_time}s.   ")
+
+def split_data(source_directory, train_ratio=0.8):
+    # Utwórz ścieżki do podkatalogów
+    train_directory = os.path.join(source_directory, 'training')
+    validation_directory = os.path.join(source_directory, 'validation')
+
+    # Utwórz podkatalogi, jeśli nie istnieją
+    os.makedirs(train_directory, exist_ok=True)
+    os.makedirs(validation_directory, exist_ok=True)
+
+    # Wczytaj wszystkie pliki .npy
+    all_files = [f for f in os.listdir(source_directory) if f.endswith('.npy')]
+
+    # Losowe mieszanie plików
+    np.random.shuffle(all_files)
+
+    # Podział plików na treningowe i walidacyjne
+    split_index = int(len(all_files) * train_ratio)
+    train_files = all_files[:split_index]
+    validation_files = all_files[split_index:]
+
+    # Przenieś pliki do odpowiednich podkatalogów
+    for f in train_files:
+        shutil.move(os.path.join(source_directory, f), train_directory)
+
+    for f in validation_files:
+        shutil.move(os.path.join(source_directory, f), validation_directory)
+
+split_data(json_directory, train_ratio=0.8)
 
 elapsed_time = round(time.time() - script_start_time, 2)
 print(f"Total execution time: {elapsed_time}s.  ")
