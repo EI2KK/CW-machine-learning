@@ -1,6 +1,7 @@
 import numpy as np
 import os
 import random
+import shutil
 
 def validate_model_on_batch(model, X, y):
     # Przeprowadź walidację i zwróć wynik
@@ -93,3 +94,32 @@ def load_and_process_data(data_folder):
         training_data_all_files.append(training_data)
 
     return training_data_all_files
+
+
+def split_data(source_directory, train_ratio=0.8):
+    # Utwórz ścieżki do podkatalogów
+    train_directory = os.path.join(source_directory, 'training')
+    validation_directory = os.path.join(source_directory, 'validation')
+
+    # Utwórz podkatalogi, jeśli nie istnieją
+    os.makedirs(train_directory, exist_ok=True)
+    os.makedirs(validation_directory, exist_ok=True)
+
+    # Wczytaj wszystkie pliki .npy
+    all_files = [f for f in os.listdir(source_directory) if f.endswith('.npy')]
+
+    # Losowe mieszanie plików
+    np.random.shuffle(all_files)
+
+    # Podział plików na treningowe i walidacyjne
+    split_index = int(len(all_files) * train_ratio)
+    train_files = all_files[:split_index]
+    validation_files = all_files[split_index:]
+
+    # Przenieś pliki do odpowiednich podkatalogów
+    for f in train_files:
+        shutil.move(os.path.join(source_directory, f), train_directory)
+
+    for f in validation_files:
+        shutil.move(os.path.join(source_directory, f), validation_directory)
+
