@@ -125,6 +125,10 @@ for epoch in range(num_epochs):
             total_validation_accuracy += validation_results[1]
             num_batches += 1
 
+    # Obliczenie średniej straty i dokładności na danych walidacyjnych
+    average_validation_loss = total_validation_loss / num_batches
+    average_validation_accuracy = total_validation_accuracy / num_batches
+   
     # Sprawdzenie, czy dokładność walidacji się poprawiła
     if average_validation_accuracy > best_val_accuracy:
         best_val_accuracy = average_validation_accuracy
