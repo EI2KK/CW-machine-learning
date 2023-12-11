@@ -1,94 +1,95 @@
-import json
 import numpy as np
 import os
+import random
+
+def validate_model_on_batch(model, X, y):
+    # Przeprowadź walidację i zwróć wynik
+    # Możesz użyć np. model.evaluate(), model.predict() itp., w zależności od potrzeb
+    evaluation = model.evaluate(X, y, verbose=0)
+    return evaluation
 
 
-def process_files(files, npy_folder, json_folder, num_time_steps=22, num_features=33, overlap_steps=11):
-    file_data_label_pairs = []
 
-    for file_name in files:
-        npy_file_path = os.path.join(npy_folder, file_name)
-        json_file_path = os.path.join(json_folder, file_name.replace('cw_', 'label_').replace('.npy', '.json'))
+def prepare_labels(sequence_labels, num_classes=7):
+    # Struktury na dane wyjściowe dla każdej warstwy
+    elements_output = [np.zeros((22, num_classes)) for _ in range(5)]  # 7 klas dla klasyfikacji
+    freq_output = [np.zeros((22, 2)) for _ in range(5)]  # 2 wartości dla regresji
 
-        if os.path.exists(npy_file_path) and os.path.exists(json_file_path):
-            # Przetwarzanie danych
-            data_portions = load_and_process_spectrogram(npy_file_path, num_time_steps, num_features, overlap_steps)
+    for step_index, step in enumerate(sequence_labels):
+        for i, event in enumerate(step['events']):
+            # Przetwarzanie klasyfikacji
+            element_vector = event["element"]
+            elements_output[i][step_index, :] = np.array([int(x) for x in element_vector])
 
-            # Wczytywanie i przetwarzanie etykiet
-            labels = load_and_process_labels(json_file_path, num_time_steps)
+            # Przetwarzanie regresji
+            frequency = event["frequency"]
+            speed_wpm = event["speed_wpm"]
+            freq_output[i][step_index, :] = [frequency, speed_wpm]
 
-            # Zbieranie danych i etykiet dla danego pliku
-            data_label_pairs = list(zip(data_portions, labels))
-            file_data_label_pairs.append(data_label_pairs)
+    # Połączenie danych wyjściowych w jeden zestaw
+    combined_output = []
+    for i in range(5):
+        combined_output.extend([elements_output[i], freq_output[i]])
 
-    return file_data_label_pairs
-
-def load_and_process_spectrogram(npy_file_path, num_time_steps, num_features, overlap_steps):
-    # Ładowanie i transpozycja spektrogramu
-    spectrogram = np.load(npy_file_path).T
-    print("Transposed spectrogram shape: ", spectrogram.shape)
-
-    # Przetwarzanie spektrogramu na porcje
-    data_portions = []
-    start = 0
-    end = num_time_steps
-    while end <= spectrogram.shape[0]:  # Uwzględnienie liczby kroków czasowych
-        portion = spectrogram[start:end, :]
-        if portion.shape[0] < num_time_steps:
-            # Dopełnienie brakujących kroków czasowych zerami
-            portion = np.pad(portion, ((0, num_time_steps - portion.shape[0]), (0, 0)), 'constant', constant_values=0)
-
-        data_portions.append(portion)
-        start += (num_time_steps - overlap_steps)
-        end = start + num_time_steps
-
-    return data_portions
+    return combined_output
 
 
-def load_and_process_labels(json_file_path, num_time_steps, num_classes=7, max_events_per_step=5):
-    with open(json_file_path, 'r') as file:
-        labels_json = json.load(file)
-
-    all_labels = []
-    for sequence in labels_json['sequences']:
-        sequence_labels = []
-        for step in sequence['steps']:
-            step_labels = {
-                "classification": [],
-                "regression": []
+# Correcting the method of slicing the spectrogram data to match the provided method
+def create_training_data_matching_method(cw_data_transposed, label_data, time_steps=22, overlap=11):
+    # Prepare the training data structure
+    training_data = {
+        "file": [
+            {
+                "sequence": []
             }
-            for event in step['events']:
-                # Tworzenie wektora klasyfikacji
-                classification_vector = [int(char) for char in event['element']]
-                # Dodawanie wartości regresji
-                regression_values = [event['frequency'], event['speed_wpm']]
+        ]
+    }
 
-                step_labels["classification"].append(classification_vector)
-                step_labels["regression"].append(regression_values)
+    # Initialize variables for slicing the spectrogram data
+    x = 0
+    z = 1  # Sequence counter
 
-            # Dopełnienie step_labels do max_events_per_step
-            while len(step_labels["classification"]) < max_events_per_step:
-                step_labels["classification"].append([0] * num_classes)
-                step_labels["regression"].append([0, 0])
+    # Iterate through the spectrogram data
+    while x <= cw_data_transposed.shape[0]:
+        end = x + time_steps
+        # Handling the case where the last sequence is shorter than 22 steps
+        if end > cw_data_transposed.shape[0]:
+            spectrogram_sequence = np.zeros((time_steps, cw_data_transposed.shape[1]))
+            spectrogram_sequence[:cw_data_transposed.shape[0] - x, :] = cw_data_transposed[x:end, :]
+        else:
+            spectrogram_sequence = cw_data_transposed[x:end, :]
 
-            # Formatowanie etykiet do struktury modelu
-            formatted_labels = []
-            for i in range(max_events_per_step):
-                formatted_labels.append((
-                    step_labels["classification"][i],
-                    step_labels["regression"][i]
-                ))
+        # Get the corresponding label sequence, handling the end of the label data
+        label_sequence = label_data[z - 1] if z - 1 < len(label_data) else label_data[-1]
 
-            sequence_labels.append(formatted_labels)
+        # Append the sequence data
+        training_data["file"][0]["sequence"].append({
+            "data": spectrogram_sequence,
+            "labels": label_sequence
+        })
 
-        # Dopełnianie etykiet do wymaganej długości
-        while len(sequence_labels) < num_time_steps:
-            empty_labels = [([0] * num_classes, [0, 0]) for _ in range(max_events_per_step)]
-            sequence_labels.append(empty_labels)
+        x += overlap
+        z += 1
 
-        all_labels.append(sequence_labels[:num_time_steps])
+    return training_data
+    
+    
+def load_and_process_data(data_folder):
+    training_data_all_files = []
 
+    # List all .npy files in the data folder
+    files = os.listdir(data_folder)
+    data_files = sorted([file for file in files if file.startswith("cw_") and file.endswith(".npy")])
+    label_files = sorted([file for file in files if file.startswith("label_") and file.endswith(".npy")])
 
-    return all_labels
+    for data_file, label_file in zip(data_files, label_files):
+        # Load data and labels with allow_pickle set to True
+        data = np.load(os.path.join(data_folder, data_file), allow_pickle=True)
+        label_data = np.load(os.path.join(data_folder, label_file), allow_pickle=True)
 
+        spectrogram_data_transposed = data.T
+        training_data = create_training_data_matching_method(spectrogram_data_transposed, label_data)
 
+        training_data_all_files.append(training_data)
+
+    return training_data_all_files
