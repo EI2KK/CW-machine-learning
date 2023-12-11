@@ -7,6 +7,7 @@ import os
 import json
 import numpy as np
 from sklearn.model_selection import train_test_split
+from keras.callbacks import EarlyStopping, ModelCheckpoint
 from model_func import *
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Ustawia poziom logowania na błędy (errors)
@@ -61,7 +62,7 @@ model.compile(optimizer=Adam(learning_rate=learning_rate),
 
 # Wyświetlenie podsumowania modelu
 model.summary()
-"""
+
 
 model_id = "01.01"
 # Otwieranie pliku JSON i wczytywanie danych
@@ -73,79 +74,71 @@ for record in data:
     if model_id not in record.get("model", []):
         directory = record["directory"]
         break
-directory_path = os.path.join(directory)
-files = os.listdir(directory_path)
+data_folder = os.path.join(directory)
+# Użycie funkcji
+# data_folder = 'json_folder_001_014'
+all_training_data = load_and_process_data(data_folder)
 
-# Filtracja tylko plików .npy
-npy_files = [file for file in files if file.endswith('.npy')]
+train_percent = 0.8
 
-file_data_label_pairs = process_files(npy_files, directory_path, directory_path, num_time_steps=22, num_features=33, overlap_steps=11)
+# Mieszanie danych
+random.shuffle(all_training_data)
 
-# Analiza pierwszego pliku
-first_file_pairs = file_data_label_pairs[0]
+# Określenie liczby plików do treningu
+num_train_files = int(len(all_training_data) * train_percent)
 
-# Analiza pierwszej pary dane-etykiety
-first_pair = first_file_pairs[0]
-single_step_data, single_step_labels = first_pair
-print("Pierwsza para:")
-print("Data shape: ", single_step_data.shape)
-print("Labels length: ", len(single_step_labels))
-# ...
+# Podział na dane treningowe i walidacyjne
+train_data = all_training_data[:num_train_files]
+validation_data = all_training_data[num_train_files:]
 
-# Analiza ostatniej pary dane-etykiety
-last_pair = first_file_pairs[-1]
-single_step_data, single_step_labels = last_pair
-print("\nOstatnia para:")
-print("Data shape: ", single_step_data.shape)
-print("Labels length: ", len(single_step_labels))
-# ...
+num_epochs = 10  # Liczba epok treningu
+best_val_accuracy = 0  # Najlepsza dokładność walidacji
+no_improvement_epochs = 0  # Licznik epok bez poprawy
+early_stopping_threshold = 3  # Liczba epok bez poprawy, po której następuje przerwanie treningu
 
-# Sprawdzenie czy dane i etykiety zostały dopełnione zerami
-if single_step_data.shape[1] < 22 or len(single_step_labels) < 22:
-    print("Ostatnia para danych lub etykiet nie została dopełniona do 22 kroków czasowych.")
-else:
-    print("Ostatnia para danych i etykiet została poprawnie dopełniona do 22 kroków czasowych.")
+# Przygotowanie callbacków
+# early_stopping = EarlyStopping(monitor='val_accuracy', patience=early_stopping_threshold)
+# model_checkpoint = ModelCheckpoint('best_model.h5', monitor='val_accuracy', save_best_only=True)
 
-
-split_ratio = 0.8  # 80% danych na trening, 20% na walidację
-split_index = int(len(file_data_label_pairs) * split_ratio)
-
-train_data_label_pairs = file_data_label_pairs[:split_index]
-validation_data_label_pairs = file_data_label_pairs[split_index:]
-
-print("Liczba par danych treningowych:", len(train_data_label_pairs))
-print("Liczba par danych walidacyjnych:", len(validation_data_label_pairs))
-
-# Przygotowanie generatorów
-# train_generator = batch_generator(train_data_label_pairs)
-# validation_generator = batch_generator(validation_data_label_pairs)
-
-print("Liczba par danych i etykiet:", len(train_data_label_pairs))
-""""
-for data, labels in train_generator:
-    print("Shape danych:", data.shape)
-    print("Shape etykiet:", labels.shape)
-    break
-
-num_epochs = 10  # Zdefiniuj liczbę epok
-
-# Pętla treningowa
 for epoch in range(num_epochs):
-    print(f"Epoch {epoch + 1}/{num_epochs}")
+    print(f"Epoka {epoch+1}/{num_epochs}")
 
-    # Trening na danych treningowych
-    for train_data, train_labels in train_generator:
-        model.train_on_batch(train_data, train_labels)
+ # Trening modelu
+    for file_data in train_data:
+        for sequence in file_data["file"][0]["sequence"]:
+            X = sequence["data"]  # Dane wejściowe z sekwencji
+            y = prepare_labels(sequence["labels"])  # Przetwarzanie etykiet dla sekwencji
+            model.train_on_batch(X, y)
 
-    # Walidacja na danych walidacyjnych
-    validation_loss, validation_accuracy = 0, 0
-    for validation_data, validation_labels in validation_generator:
-        loss, accuracy = model.evaluate(validation_data, validation_labels, verbose=0)
-        validation_loss += loss
-        validation_accuracy += accuracy
+    # Walidacja modelu
+    total_validation_loss = 0
+    total_validation_accuracy = 0
+    num_batches = 0
 
-    # Wyświetlenie średnich wyników walidacji
-    validation_loss /= len(validation_data_label_pairs)
-    validation_accuracy /= len(validation_data_label_pairs)
-    print(f"Validation loss: {validation_loss}, Validation accuracy: {validation_accuracy}")
-"""
+    for file_data in validation_data:
+        for sequence in file_data["file"][0]["sequence"]:
+            X_val = sequence["data"]  # Dane wejściowe z sekwencji dla walidacji
+            y_val = prepare_labels(sequence["labels"])  # Przetwarzanie etykiet dla sekwencji
+            validation_results = model.evaluate(X_val, y_val, verbose=0)
+            
+            total_validation_loss += validation_results[0]
+            total_validation_accuracy += validation_results[1]
+            num_batches += 1
+
+    # Sprawdzenie, czy dokładność walidacji się poprawiła
+    if average_validation_accuracy > best_val_accuracy:
+        best_val_accuracy = average_validation_accuracy
+        no_improvement_epochs = 0
+        model.save('best_model.h5')  # Zapis najlepszego modelu
+    else:
+        no_improvement_epochs += 1
+
+    if no_improvement_epochs >= early_stopping_threshold:
+        print("Brak postępu. Przerywanie treningu.")
+        break
+
+    print(f"Średnia strata walidacji: {average_validation_loss}")
+    print(f"Średnia dokładność walidacji: {average_validation_accuracy}")
+
+# Załadowanie najlepszego modelu
+model = keras.models.load_model('best_model.h5')
