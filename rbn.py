@@ -79,7 +79,7 @@ try:
                     break
             time.sleep(0.1)
         
-        time.sleep(1)
+        time.sleep(2)
         tn.write((call_sign + "\n").encode('ascii'))
         print(f"Call sign {call_sign} sent, waiting for response...")
 
@@ -93,7 +93,7 @@ try:
             
 
         start_time = time.time()
-        duration = 1800  # duration in seconds
+        duration = 600  # duration in seconds
 
         while time.time() - start_time < duration:
             data = tn.read_very_eager().decode('utf-8', errors='ignore')
@@ -160,38 +160,38 @@ def frequency_to_band(frequency):
     else:
         band = "other"
     
-    return band  # Przykład
+    return band 
+    
+znaki = ['EI', 'EJ', 'M', 'G', '2E']    
 
 for line in spot_data:
-    # Usuń część linii do ":" włącznie
-    processed_line = line.split(':', 1)[1]
-
-    # Podziel resztę linii na podstawie spacji
-    parts = processed_line.split()
-
-    # Teraz możesz wyciągnąć poszczególne elementy
-    frequency_str = parts[0]
+    parts = line.split()
+    spotter = parts[2]
+    frequency_str = parts[3]
     frequency_khz = float(frequency_str) / 1000
     band = frequency_to_band(frequency_khz)
     formatted_frequency_khz = "{:.4f}".format(frequency_khz)
-    target = parts[1]
-    mode = parts[2]
-    signal_level = parts[3] + " " + parts[4]  # np. "18 dB"
-    time_utc_str = parts[-1][:-1]  # Usuwa "Z" z końca stringu
+    target = parts[4]
+    mode = parts[5]
+    signal_level = parts[6] + " " + parts[7] 
+    time_utc_str = parts[-1][:-1]
     time_utc = time_utc_str[:2] + ":" + time_utc_str[2:]
 
-    # Usuwanie duplikatów
-    existing_entry = next((item for item in bands[band] if item['target'] == target), None)
-    if existing_entry:
-        bands[band].remove(existing_entry)
+    # Sprawdzenie, czy spotter lub target zaczyna się od jednego z podanych ciągów znaków
+    if any(spotter.startswith(prefix) or target.startswith(prefix) for prefix in znaki):
+        # Usuwanie duplikatów
+        existing_entry = next((item for item in bands[band] if item['target'] == target), None)
+        if existing_entry:
+            bands[band].remove(existing_entry)
 
-    bands[band].append({
-        'frequency': formatted_frequency_khz,
-        'target': target,
-        'mode': mode,
-        'signal_level': signal_level,
-        'time_utc': time_utc
-    })
+        bands[band].append({
+            'spotter': spotter,
+            'frequency': formatted_frequency_khz,
+            'target': target,
+            'mode': mode,
+            'signal_level': signal_level,
+            'time_utc': time_utc
+        })
 
 # Przykład wydruku
 for band, spots in bands.items():
