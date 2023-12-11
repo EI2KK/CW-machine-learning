@@ -19,7 +19,7 @@ def normalize_speed_wpm(speed):
 def format_time(value):
     return float(f"{value:.4f}")
 
-def process_json_files_v7(directory, window, overlap, step_ms):
+def process_json_files_v7(directory, num_steps, overlap, step_ms):
     element_to_vector = {
         "dot":          "0000001",
         "dash":         "0000010",
@@ -38,54 +38,57 @@ def process_json_files_v7(directory, window, overlap, step_ms):
             sequences = []
             session_duration_ms = data.get("session_duration_ms", 0)
 
-            start_ms = 0
-            while start_ms < session_duration_ms:
-                end_ms = start_ms + window
-                if end_ms > session_duration_ms:
-                    end_ms = session_duration_ms
-
+            start_step_index = 0
+            while start_step_index * step_ms < session_duration_ms:
                 sequence = {
-                    "start_ms": start_ms,
-                    "end_ms": end_ms,
+                    "start_ms": start_step_index * step_ms,
                     "steps": []
                 }
 
-                step_start_ms = start_ms
-                while step_start_ms < end_ms:
-                    step_end_ms = step_start_ms + step_ms
+                for step_index in range(num_steps):
+                    current_step_ms = (start_step_index + step_index) * step_ms
+                    next_step_ms = current_step_ms + step_ms
                     step_events = []
 
                     for element_group in data.get("elements", []):
                         for element in element_group.get("data", []):
-                            if (element["end_ms"] < step_end_ms and element["end_ms"] >= step_start_ms):
+                            if (element["end_ms"] < next_step_ms and element["end_ms"] >= current_step_ms):
                                 step_events.append({
+                                    "step_ms": current_step_ms,
                                     "frequency": normalize_frequency(element_group["frequency"]),
                                     "speed_wpm": normalize_speed_wpm(element_group["speed_wpm"]),
                                     "element": element_to_vector.get(element["element"], "0000000")
                                 })
 
-                    if not step_events:
+                    # Dodanie elementów zerowych jeśli jest mniej niż 5 elementów
+                    while len(step_events) < 5:
                         step_events.append({
+                            "step_ms": current_step_ms,
                             "frequency": 0,
                             "speed_wpm": 0,
                             "element": "0000000"
                         })
 
                     sequence["steps"].append({
-                        "time_ms": step_start_ms,
+                        "time_ms": current_step_ms,
                         "events": step_events
                     })
-                    step_start_ms += step_ms
+ 
+
 
                 sequences.append(sequence)
-                start_ms += window - overlap
+                start_step_index += num_steps - overlap
 
             label_filename_npy = "label_" + filename.split("_")[1].replace('.json', '.npy')
             label_path_npy = os.path.join(directory, label_filename_npy)
             np.save(label_path_npy, sequences)
 
+# The main execution part of the script, with specified num_steps, overlap, and step_ms
+
+
+
 step_ms = 23.219954648526078
-data_length = 22
+num_steps = 22
 overlap = 11
 
-process_json_files_v7(directory, (data_length * step_ms), (overlap * step_ms), step_ms)
+process_json_files_v7(directory, num_steps, overlap, step_ms)

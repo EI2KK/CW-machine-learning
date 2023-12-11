@@ -3,8 +3,8 @@ from scipy.signal import spectrogram
 
 
 sample_rate = 44100  
-freq_min = 600      
-freq_max = 800      
+freq_min = 650     
+freq_max = 750      
 nperseg = 8192
 noverlap = 4096 + 2048 + 1024 + 512 + 64 + 7
 
