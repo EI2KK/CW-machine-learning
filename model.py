@@ -20,15 +20,15 @@ num_classes = 7   # Liczba klas/etykiet do rozpoznania
 dropout_rate = 0.5
 learning_rate = 0.001
 """
-# Wymiary danych wejściowych - należy je dostosować do Twoich danych
-input_shape = (22, 33)  # 'None' dla zmiennego rozmiaru sekwencji, 'num_features' to liczba cech na krok czasowy
+## resetowanie stanu pomiedzy plikami model.reset_states()
+## dodanie wymiaru do sekwencji dane = np.expand_dims(dane, axis=0)
+input_layer = Input(batch_shape=(1, 22, 33))
 
 # Tworzenie warstwy wejściowej
-input_layer = Input(shape=input_shape)
 
 # Dodawanie warstw LSTM
-lstm_layer = LSTM(lstm_units, return_sequences=True)(input_layer)
-lstm_layer = LSTM(lstm_units, return_sequences=True)(lstm_layer)
+lstm_layer = LSTM(lstm_units, return_sequences=True, stateful=True)(input_layer)
+lstm_layer = LSTM(lstm_units, return_sequences=True, stateful=True)(lstm_layer)
 
 # Dodawanie warstwy uwagi
 attention_layer = Attention()([lstm_layer, lstm_layer])
