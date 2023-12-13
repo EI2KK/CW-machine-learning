@@ -21,13 +21,14 @@ def format_time(value):
 
 def process_json_files_v7(directory, num_steps, overlap, step_ms):
     element_to_vector = {
-        "dot":          "0000001",
-        "dash":         "0000010",
-        "element_end":  "0000100",
-        "char_end":     "0001000",
-        "word_end":     "0010000",
-        "qrm":          "0100000",
-        "pause":        "1000000"
+        "dot":          "00000001",
+        "dash":         "00000010",
+        "element_end":  "00000100",
+        "char_end":     "00001000",
+        "word_end":     "00010000",
+        "qrm":          "00100000",
+        "pause":        "01000000",
+        "pause":        "10000000"
     }
 
     for filename in os.listdir(directory):
@@ -57,7 +58,7 @@ def process_json_files_v7(directory, num_steps, overlap, step_ms):
                                     "step_ms": current_step_ms,
                                     "frequency": normalize_frequency(element_group["frequency"]),
                                     "speed_wpm": normalize_speed_wpm(element_group["speed_wpm"]),
-                                    "element": element_to_vector.get(element["element"], "0000000")
+                                    "element": element_to_vector.get(element["element"], "10000000")
                                 })
 
                     # Dodanie elementów zerowych jeśli jest mniej niż 5 elementów
@@ -66,7 +67,7 @@ def process_json_files_v7(directory, num_steps, overlap, step_ms):
                             "step_ms": current_step_ms,
                             "frequency": 0,
                             "speed_wpm": 0,
-                            "element": "0000000"
+                            "element": "10000000"
                         })
 
                     sequence["steps"].append({
@@ -87,8 +88,8 @@ def process_json_files_v7(directory, num_steps, overlap, step_ms):
 
 
 
-step_ms = 23.219954648526078
-num_steps = 22
-overlap = 11
+step_ms = 10.0 # 23.219954648526078
+num_steps = 50
+overlap = 25
 
 process_json_files_v7(directory, num_steps, overlap, step_ms)
