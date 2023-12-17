@@ -19,8 +19,11 @@ speed_range = (18, 25)
 freq_range = (300, 1000)
 min_sep = 50
 qrm_sep = 50
+
 sidetone = 700
 sidetone_var = 10
+base_frequency = sidetone + random.randint(-sidetone_var, sidetone_var)
+
 start_between_ms = (50, 300)
 stop_b4_end = 1800  # must be grater than pause_length
 nr_of_freq = 2
@@ -161,7 +164,7 @@ def generate_word_data(word, start_time, speed, max_end_time):
     return data, start_time
 
 
-def generate_frequencies(nr_of_freq, freq_range, min_sep, sidetone=sidetone):
+def generate_frequencies(nr_of_freq, freq_range, min_sep, sidetone=base_frequency):
     possible_frequencies = set(range(freq_range[0], freq_range[1] + 1))
     frequencies = []
 
@@ -216,16 +219,36 @@ for file_number in range(1, num_files_to_generate + 1):
         "elements": []
     }
 
-    # generowanie danych dla czestotliwosci bazowej
     base_frequency = sidetone + random.randint(-sidetone_var, sidetone_var)
 
+
     frequencies = []
-    frequencies = generate_frequencies(nr_of_freq, freq_range, min_sep)
+    frequencies = generate_frequencies(nr_of_freq, freq_range, min_sep, base_frequency)
     qrm_frequencies = generate_qrm_frequencies(nr_of_qrm_freq, freq_range, qrm_sep, frequencies)
 
     # generowanie danych dla czestotliwosci bazowej
-    base_frequency = sidetone + random.randint(-sidetone_var, sidetone_var)
 
+    frequency = base_frequency
+    speed = random.randint(*speed_range)
+    start_time = random.randint(*start_between_ms)
+    volume = round(random.uniform(min_volume, 1), 3)
+    freq_data = {"frequency": frequency, "speed_wpm": speed, "output": 1, "volume": volume,
+                 "data": []}  # Dodano 'volume'
+
+    limited_character_list = character_list[:n]
+
+    while start_time < total_length - stop_b4_end:
+        word_length = random.randint(*char_range)
+        word = ''.join(random.choices(limited_character_list, k=word_length))
+        word_data, new_start_time = generate_word_data(word, start_time, speed, total_length - stop_b4_end)
+        if new_start_time == start_time:
+            break
+        start_time = new_start_time
+        freq_data["data"].extend(word_data)
+
+    json_data["elements"].append(freq_data)
+
+    # pozostale czestotliwosci
     for _ in range(nr_of_freq):
 
         frequency = frequencies[_]
