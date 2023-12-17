@@ -24,7 +24,7 @@ def process_json_file(json_file):
         with open(json_file, 'r') as file:
             data = json.load(file)
 
-        sample_rate = 44100  # Próbki na sekundę
+        sample_rate = 48000 #44100  # Próbki na sekundę
         max_duration = data['session_duration_ms'] / 1000  # Maksymalny czas trwania sesji w sekundach
         audio_signal = np.zeros(int(sample_rate * max_duration))  # Inicjalizacja sygnału audio
 
