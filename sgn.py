@@ -62,4 +62,56 @@ for i in range(70):
         result = morse_gen.send(signal)
         if result:
             morse_output += result
-    print(i, morse_output)
+    if morse_output:         
+        print(i, morse_output)
+
+"""
+
+# Zakładając, że masz n klas
+num_classes = n
+generators = [morse_code_generator_v3() for _ in range(num_classes)]
+
+# Inicjalizacja generatorów
+for gen in generators:
+    next(gen)
+
+# Zakładając, że masz listę list danych, gdzie każda wewnętrzna lista odpowiada danej klasie
+data_per_class = [...]
+
+# Przetwarzanie danych dla każdej klasy
+results = [[] for _ in range(num_classes)]
+for class_idx, data in enumerate(data_per_class):
+    for signal in data:
+        result = generators[class_idx].send(signal)
+        if result:
+            results[class_idx].append(result)
+
+# zbieraie elementow i dekodowanie znakow
+from queue import Queue
+
+# Tworzenie kolejki do przechowywania elementów Morse'a
+elements_queue = Queue()
+
+# Przyjmowanie sygnałów i przetwarzanie ich
+for signal in signals:  # 'signals' to lista sygnałów
+    result = morse_gen.send(signal)
+    if result:
+        if result == ' ':
+            # Gdy napotkasz przerwę między znakami, zdekoduj i wyczyść kolejkę
+            decoded_character = decode_from_queue(elements_queue)
+            morse_output += decoded_character
+            elements_queue.queue.clear()
+        else:
+            # Dodaj elementy do kolejki
+            elements_queue.put(result)
+
+# Funkcja do dekodowania znaku z elementów w kolejce
+def decode_from_queue(queue):
+    # Logika dekodowania znaku Morse'a z elementów w kolejce
+    # ...
+    return decoded_character
+
+
+
+            
+"""            
